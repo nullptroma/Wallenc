@@ -2,16 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "ru.freedominc.wallenc"
+    namespace = "com.github.nullptroma.wallenc"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "ru.freedominc.wallenc"
+        applicationId = "com.github.nullptroma.wallenc"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -53,7 +53,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.navigation)
+    implementation(libs.navigation)
+    implementation(libs.navigation.hilt.compose)
 
     // Yandex
     implementation(libs.yandex.oauth)
@@ -91,4 +92,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    implementation(project(":domain"))
+    implementation(project(":data"))
 }
