@@ -44,8 +44,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             WallencTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val vm : MainViewModel = hiltViewModel()
-                    MainScreen(Modifier.padding(innerPadding), vm)
+                    Greeting(Modifier.padding(innerPadding)) {
+                        launcher.launch(loginOptions)
+                    }
                 }
             }
         }

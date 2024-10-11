@@ -22,7 +22,7 @@ android {
             useSupportLibrary = true
         }
 
-        manifestPlaceholders["YANDEX_CLIENT_ID"] = "f1402bc7bc8b4502a39624d9acecc54c"
+        manifestPlaceholders["YANDEX_CLIENT_ID"] = "0854a43a284a445480c5ced2258f2069"
     }
 
     buildTypes {
