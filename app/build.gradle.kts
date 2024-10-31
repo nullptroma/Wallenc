@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.github.nullptroma.wallenc"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.github.nullptroma.wallenc"
