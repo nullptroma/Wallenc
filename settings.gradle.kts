@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Wallenc"
 include(":app")
-include(":domain")
 include(":data")
+include(":domain")

@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.github.nullptroma.data"
-    compileSdk = 35
+    namespace = "com.github.nullptroma.wallenc.data"
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 24
@@ -35,8 +35,21 @@ android {
 }
 
 dependencies {
+    // Hilt
     implementation(libs.dagger.hilt)
     ksp(libs.dagger.hilt.compiler)
+
+    // Room
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    ksp(libs.room.compiler)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.converter.scalars)
+    implementation(libs.google.gson)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -44,4 +57,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation(project(":domain"))
 }

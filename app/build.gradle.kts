@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.github.nullptroma.wallenc"
+    namespace = "com.github.nullptroma.wallenc.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.github.nullptroma.wallenc"
+        applicationId = "com.github.nullptroma.wallenc.app"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -63,18 +63,6 @@ dependencies {
     implementation(libs.dagger.hilt)
     ksp(libs.dagger.hilt.compiler)
 
-    // Room
-    implementation(libs.room.ktx)
-    implementation(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
-    ksp(libs.room.compiler)
-
-    // Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.retrofit.converter.scalars)
-    implementation(libs.google.gson)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -93,6 +81,6 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":domain"))
 }
