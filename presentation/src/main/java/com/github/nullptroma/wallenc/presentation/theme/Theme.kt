@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.app.ui.theme
+package com.github.nullptroma.wallenc.presentation.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

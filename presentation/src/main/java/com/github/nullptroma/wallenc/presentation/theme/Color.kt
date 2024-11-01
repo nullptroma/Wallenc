@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.app.ui.theme
+package com.github.nullptroma.wallenc.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

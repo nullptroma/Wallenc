@@ -23,3 +23,4 @@ rootProject.name = "Wallenc"
 include(":app")
 include(":data")
 include(":domain")
+include(":presentation")

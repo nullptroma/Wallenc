@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dagger.hilt)
@@ -7,22 +7,14 @@ plugins {
 }
 
 android {
-    namespace = "com.github.nullptroma.wallenc.app"
-    compileSdk = 35
+    namespace = "com.github.nullptroma.wallenc.presentation"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.github.nullptroma.wallenc.app"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
-
-        manifestPlaceholders["YANDEX_CLIENT_ID"] = "0854a43a284a445480c5ced2258f2069"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -56,9 +48,6 @@ dependencies {
     implementation(libs.navigation)
     implementation(libs.navigation.hilt.compose)
 
-    // Yandex
-    implementation(libs.yandex.oauth)
-
     // Hilt
     implementation(libs.dagger.hilt)
     ksp(libs.dagger.hilt.compiler)
@@ -82,6 +71,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
     implementation(project(":domain"))
-    implementation(project(":presentation"))
-    runtimeOnly(project(":data"))
 }

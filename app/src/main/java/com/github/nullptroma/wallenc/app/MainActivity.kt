@@ -18,7 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.nullptroma.wallenc.app.ui.theme.WallencTheme
+import com.github.nullptroma.wallenc.presentation.screens.main.MainScreen
+import com.github.nullptroma.wallenc.presentation.theme.WallencTheme
 import com.yandex.authsdk.YandexAuthLoginOptions
 import com.yandex.authsdk.YandexAuthOptions
 import com.yandex.authsdk.YandexAuthResult
@@ -29,10 +30,10 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val sdk = YandexAuthSdk.create(YandexAuthOptions(applicationContext, true))
         val launcher =
             registerForActivityResult(sdk.contract) { result -> handleResult(result) }
@@ -41,9 +42,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             WallencTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(Modifier.padding(innerPadding)) {
-                        launcher.launch(loginOptions)
-                    }
+//                    Greeting(Modifier.padding(innerPadding)) {
+//                        launcher.launch(loginOptions)
+//                    }
+                    MainScreen(
+                        Modifier.padding(
+                            innerPadding
+                        )
+                    )
                 }
             }
         }
@@ -76,7 +82,7 @@ fun Greeting(modifier: Modifier = Modifier, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    WallencTheme {
+    com.github.nullptroma.wallenc.presentation.theme.WallencTheme {
         Greeting(Modifier) {
 
         }

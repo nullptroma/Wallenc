@@ -5,22 +5,25 @@ coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+kotlinxCoroutinesCore = "1.9.0"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.10.01"
 navigation = "2.8.3"
 hiltNavigation = "1.2.0"
-yandexAuthSdk = "3.1.1"
-daggerHilt = "2.51.1"
+yandexAuthSdk = "3.1.2"
+daggerHilt = "2.52"
 ksp = "2.0.20-1.0.25"
 room = "2.6.1"
-retrofit = "2.9.0"
-gson = "2.10.1"
+retrofit = "2.11.0"
+gson = "2.11.0"
 appcompat = "1.7.0"
 material = "1.12.0"
 jetbrainsKotlinJvm = "2.0.20"
+runtimeAndroid = "1.7.5"
 
 [libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 navigation-hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
 
@@ -59,6 +62,7 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 
 
 [plugins]
