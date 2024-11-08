@@ -1,29 +1,36 @@
 package com.github.nullptroma.wallenc.presentation.screens.main
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsRoute
 
 
 @androidx.compose.runtime.Composable
-fun MainScreen(modifier: Modifier = Modifier.Companion, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(modifier: Modifier = Modifier,
+               viewModel: MainViewModel = hiltViewModel(),
+               onSettingsRoute: (SettingsRoute) -> Unit) {
     val state = viewModel.stateFlow
-    Column(modifier = modifier.imePadding()) {
-
-        Text(text = state.value)
-        Box(
-            modifier = Modifier.Companion.fillMaxSize(),
-            contentAlignment = Alignment.Companion.BottomCenter
-        ) {
-            TextField("", onValueChange = {
-
-            })
+    var text by remember { mutableStateOf("") }
+    Column(modifier = modifier.imePadding().fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        TextField(text, onValueChange = { s ->
+            text = s
+        })
+        Button( onClick = {
+            onSettingsRoute(SettingsRoute(text))
+        }) {
+            Text("Press Me!")
         }
     }
 }
