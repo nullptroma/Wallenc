@@ -1,5 +1,9 @@
 package com.github.nullptroma.wallenc.presentation.screens.settings
 
+import com.github.nullptroma.wallenc.presentation.screens.ScreenRoute
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
-@Serializable class SettingsRoute(val text: String)
+@Serializable
+@Parcelize
+class SettingsRoute(val text: String): ScreenRoute()
