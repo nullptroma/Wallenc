@@ -3,6 +3,7 @@ package com.github.nullptroma.wallenc.presentation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
@@ -19,14 +20,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
-import com.github.nullptroma.wallenc.presentation.navigation.NavBarItem
+import com.github.nullptroma.wallenc.presentation.navigation.NavBarItemData
 import com.github.nullptroma.wallenc.presentation.navigation.rememberNavigationState
 import com.github.nullptroma.wallenc.presentation.screens.main.MainRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.MainScreen
+import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultRoute
+import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
 import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsRoute
 import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsScreen
 import com.github.nullptroma.wallenc.presentation.theme.WallencTheme
@@ -46,59 +51,75 @@ fun WallencUi() {
 fun WallencNavRoot() {
     val navState = rememberNavigationState()
 
-    val topLevelScreenRoutes = rememberSaveable {
+    val mainNavState = rememberNavigationState()
+    val mainScreenRoutes = rememberSaveable {
+        mutableMapOf(
+            LocalVaultRoute::class.qualifiedName!! to LocalVaultRoute(),
+            RemoteVaultsRoute::class.qualifiedName!! to RemoteVaultsRoute()
+        )
+    }
+
+    val topLevelRoutes = rememberSaveable {
         mutableMapOf(
             MainRoute::class.qualifiedName!! to MainRoute(),
             SettingsRoute::class.qualifiedName!! to SettingsRoute("Base settings")
         )
     }
 
-    // Все пункты меню верхнего уровня
     val topLevelNavBarItems = remember {
-        listOf(
-            NavBarItem("Main", MainRoute::class.qualifiedName!!, Icons.Rounded.Menu),
-            NavBarItem("Settings", SettingsRoute::class.qualifiedName!!, Icons.Rounded.Settings)
+        mapOf(
+            MainRoute::class.qualifiedName!! to NavBarItemData(
+                R.string.nav_label_main, MainRoute::class.qualifiedName!!, Icons.Rounded.Menu
+            ),
+            SettingsRoute::class.qualifiedName!! to NavBarItemData(
+                R.string.nav_label_settings,
+                SettingsRoute::class.qualifiedName!!,
+                Icons.Rounded.Settings
+            )
         )
     }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navState.navHostController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-                topLevelNavBarItems.forEach {
-                    val routeClassName = it.screenRouteClass
 
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                it.icon,
-                                contentDescription = it.name
-                            )
-                        },
-                        label = { Text(it.name) },
-                        selected = currentRoute?.startsWith(routeClassName) == true,
-                        onClick = {
-                            var route = topLevelScreenRoutes[it.screenRouteClass]
-                            if(route == null)
-                                throw NoSuchElementException("Screen route of type ${it.screenRouteClass} no found")
-                            if(currentRoute?.startsWith(routeClassName) != true)
-                                navState.navigationTo(route)
-                        }
+    Scaffold(bottomBar = {
+        NavigationBar(modifier = Modifier.height(64.dp)) {
+            val navBackStackEntry by navState.navHostController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+            topLevelNavBarItems.forEach {
+                val routeClassName = it.key
+                val navBarItemData = it.value
+                NavigationBarItem(icon = {
+                    if (navBarItemData.icon != null) Icon(
+                        navBarItemData.icon,
+                        contentDescription = stringResource(navBarItemData.nameStringResourceId)
                     )
-                }
+                },
+                    label = { Text(stringResource(navBarItemData.nameStringResourceId)) },
+                    selected = currentRoute?.startsWith(routeClassName) == true,
+                    onClick = {
+                        var route = topLevelRoutes[navBarItemData.screenRouteClass]
+                        if (route == null)
+                            throw NullPointerException("Route $route not found")
+                        if (currentRoute?.startsWith(routeClassName) != true) navState.navigationTo(
+                            route
+                        )
+                    })
             }
-        }) { innerPaddings ->
-        NavHost(navState.navHostController, startDestination = topLevelScreenRoutes[MainRoute::class.qualifiedName]!!) {
+        }
+    }) { innerPaddings ->
+        NavHost(
+            navState.navHostController,
+            startDestination = topLevelRoutes[MainRoute::class.qualifiedName]!!
+        ) {
             composable<MainRoute>(enterTransition = {
                 fadeIn(tween(200))
             }, exitTransition = {
                 fadeOut(tween(200))
             }) {
-                MainScreen(Modifier.padding(innerPaddings), onSettingsRoute = { settingsRoute ->
-                    topLevelScreenRoutes[settingsRoute::class.qualifiedName!!] = settingsRoute
-                    navState.navigationTo(settingsRoute)
-                })
+                MainScreen(
+                    modifier = Modifier.padding(innerPaddings),
+                    navState = mainNavState,
+                    routes = mainScreenRoutes
+                )
             }
             composable<SettingsRoute>(enterTransition = {
                 fadeIn(tween(200))

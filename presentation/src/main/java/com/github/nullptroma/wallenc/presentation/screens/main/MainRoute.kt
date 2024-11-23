@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Parcelize
-class MainRoute: ScreenRoute()
+open class MainRoute: ScreenRoute()
