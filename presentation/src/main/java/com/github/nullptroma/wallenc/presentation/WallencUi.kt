@@ -18,10 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -30,10 +30,10 @@ import com.github.nullptroma.wallenc.presentation.navigation.NavBarItemData
 import com.github.nullptroma.wallenc.presentation.navigation.rememberNavigationState
 import com.github.nullptroma.wallenc.presentation.screens.main.MainRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.MainScreen
-import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultRoute
-import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
+import com.github.nullptroma.wallenc.presentation.screens.main.MainViewModel
 import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsRoute
 import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsScreen
+import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsViewModel
 import com.github.nullptroma.wallenc.presentation.theme.WallencTheme
 
 
@@ -48,23 +48,14 @@ fun WallencUi() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WallencNavRoot() {
+fun WallencNavRoot(viewModel: WallencViewModel = hiltViewModel()) {
     val navState = rememberNavigationState()
-
     val mainNavState = rememberNavigationState()
-    val mainScreenRoutes = rememberSaveable {
-        mutableMapOf(
-            LocalVaultRoute::class.qualifiedName!! to LocalVaultRoute(),
-            RemoteVaultsRoute::class.qualifiedName!! to RemoteVaultsRoute()
-        )
-    }
 
-    val topLevelRoutes = rememberSaveable {
-        mutableMapOf(
-            MainRoute::class.qualifiedName!! to MainRoute(),
-            SettingsRoute::class.qualifiedName!! to SettingsRoute("Base settings")
-        )
-    }
+    val mainViewModel: MainViewModel = hiltViewModel()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+
+    val topLevelRoutes = viewModel.routes
 
     val topLevelNavBarItems = remember {
         mapOf(
@@ -118,7 +109,7 @@ fun WallencNavRoot() {
                 MainScreen(
                     modifier = Modifier.padding(innerPaddings),
                     navState = mainNavState,
-                    routes = mainScreenRoutes
+                    viewModel = mainViewModel
                 )
             }
             composable<SettingsRoute>(enterTransition = {
@@ -126,8 +117,7 @@ fun WallencNavRoot() {
             }, exitTransition = {
                 fadeOut(tween(200))
             }) {
-                val route: SettingsRoute = it.toRoute()
-                SettingsScreen(Modifier.padding(innerPaddings), route.text)
+                SettingsScreen(Modifier.padding(innerPaddings), settingsViewModel)
             }
         }
     }

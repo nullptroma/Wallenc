@@ -1,25 +1,25 @@
-package com.github.nullptroma.wallenc.presentation.screens.main
+package com.github.nullptroma.wallenc.presentation
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import com.github.nullptroma.wallenc.presentation.screens.ScreenRoute
-import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultRoute
-import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
+import com.github.nullptroma.wallenc.presentation.screens.main.MainRoute
+import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsRoute
 import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlin.collections.set
 
 @HiltViewModel
-class MainViewModel @javax.inject.Inject constructor(savedStateHandle: SavedStateHandle) :
-    ViewModelBase<MainScreenState>(MainScreenState("default string")) {
-
+class WallencViewModel @javax.inject.Inject constructor(savedStateHandle: SavedStateHandle) :
+    ViewModelBase<Unit>(Unit) {
     @OptIn(SavedStateHandleSaveableApi::class)
     var routes by savedStateHandle.saveable {
         mutableStateOf(
             mapOf<String, ScreenRoute>(
-                LocalVaultRoute::class.qualifiedName!! to LocalVaultRoute(),
-                RemoteVaultsRoute::class.qualifiedName!! to RemoteVaultsRoute()
+                MainRoute::class.qualifiedName!! to MainRoute(),
+                SettingsRoute::class.qualifiedName!! to SettingsRoute()
             )
         )
     }

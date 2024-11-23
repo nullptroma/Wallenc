@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Parcelize
-class SettingsRoute(val text: String): ScreenRoute()
+class SettingsRoute: ScreenRoute()

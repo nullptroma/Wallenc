@@ -16,7 +16,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,14 +23,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.toRoute
 import com.github.nullptroma.wallenc.presentation.R
 import com.github.nullptroma.wallenc.presentation.navigation.NavBarItemData
 import com.github.nullptroma.wallenc.presentation.navigation.NavigationState
 import com.github.nullptroma.wallenc.presentation.navigation.rememberNavigationState
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultScreen
+import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultViewModel
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsScreen
+import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,13 +42,11 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
     navState: NavigationState = rememberNavigationState(),
-    routes: MutableMap<String, MainRoute> = rememberSaveable {
-        mutableMapOf(
-            LocalVaultRoute::class.qualifiedName!! to LocalVaultRoute(),
-            RemoteVaultsRoute::class.qualifiedName!! to RemoteVaultsRoute()
-        )
-    }
 ) {
+    val routes = viewModel.routes
+    val localVaultViewModel: LocalVaultViewModel = hiltViewModel()
+    val remoteVaultsViewModel: RemoteVaultsViewModel = hiltViewModel()
+
     val topLevelNavBarItems = remember {
         mapOf(
             LocalVaultRoute::class.qualifiedName!! to NavBarItemData(
@@ -94,14 +94,21 @@ fun MainScreen(
             }, exitTransition = {
                 fadeOut(tween(200))
             }) {
-                LocalVaultScreen(modifier = Modifier.padding(innerPaddings))
+                val route: LocalVaultRoute = it.toRoute()
+                LocalVaultScreen(
+                    modifier = Modifier.padding(innerPaddings),
+                    viewModel = localVaultViewModel
+                )
             }
             composable<RemoteVaultsRoute>(enterTransition = {
                 fadeIn(tween(200))
             }, exitTransition = {
                 fadeOut(tween(200))
             }) {
-                RemoteVaultsScreen(modifier = Modifier.padding(innerPaddings))
+                RemoteVaultsScreen(
+                    modifier = Modifier.padding(innerPaddings),
+                    viewModel = remoteVaultsViewModel
+                )
             }
         }
     }

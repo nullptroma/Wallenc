@@ -11,9 +11,9 @@ import androidx.compose.ui.res.stringResource
 import com.github.nullptroma.wallenc.presentation.R
 
 @Composable
-fun SettingsScreen(modifier: Modifier, text: String) {
+fun SettingsScreen(modifier: Modifier, viewModel: SettingsViewModel) {
     Column (modifier = modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Text(text = stringResource(id = R.string.settings_title))
-        Text(text = text)
+//        Text(text = viewModel)
     }
 }
