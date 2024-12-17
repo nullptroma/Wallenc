@@ -13,6 +13,7 @@ activityCompose = "1.9.3"
 composeBom = "2024.10.01"
 navigation = "2.8.3"
 hiltNavigation = "1.2.0"
+timber = "5.0.1"
 yandexAuthSdk = "3.1.2"
 daggerHilt = "2.52"
 ksp = "2.0.10-1.0.24"
@@ -29,6 +30,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 navigation-hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 # Yandex
 yandex-oauth = { group = "com.yandex.android", name = "authsdk", version.ref = "yandexAuthSdk" }

@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.github.nullptroma.wallenc.presentation.WallencUi
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
-class Container<T>(val value: T)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -15,12 +15,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        Timber.plant(Timber.DebugTree())
 //        val sdk = YandexAuthSdk.create(YandexAuthOptions(applicationContext, true))
 //        val launcher =
 //            registerForActivityResult(sdk.contract) { result -> handleResult(result) }
 //        val loginOptions = YandexAuthLoginOptions(LoginType.CHROME_TAB)
-        val cont1 = Container(true)
-        var cont2 = Container<Boolean>(true)
+
         setContent {
             WallencUi()
         }

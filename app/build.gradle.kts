@@ -53,6 +53,9 @@ android {
 }
 
 dependencies {
+    // Timber
+    implementation(libs.timber)
+
     // Yandex
     implementation(libs.yandex.oauth)
 
@@ -76,6 +79,6 @@ dependencies {
     //androidTestImplementation(libs.androidx.ui.test.junit4)
 
     implementation(project(":domain"))
+    implementation(project(":data"))
     implementation(project(":presentation"))
-    runtimeOnly(project(":data"))
 }

@@ -34,6 +34,9 @@ android {
 }
 
 dependencies {
+    // Timber
+    implementation(libs.timber)
+
     // Room
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)

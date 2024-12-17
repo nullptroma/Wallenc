@@ -5,5 +5,5 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 
 @HiltViewModel
 class SettingsViewModel @javax.inject.Inject constructor() :
-    ViewModelBase<SettingsScreenState>(SettingsScreenState("default string")) {
+    ViewModelBase<SettingsScreenState>(SettingsScreenState()) {
 }

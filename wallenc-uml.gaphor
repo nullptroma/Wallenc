@@ -2492,7 +2492,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>localVault</val>
 </name>
 <typeValue>
-<val>StateFlow&lt;IVault&gt;</val>
+<val>IVault</val>
 </typeValue>
 </Property>
 <Property id="29e33324-96f0-11ef-9427-3ba703bb2331">

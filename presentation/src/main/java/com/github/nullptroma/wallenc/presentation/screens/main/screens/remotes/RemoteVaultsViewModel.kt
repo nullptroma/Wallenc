@@ -6,6 +6,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RemoteVaultsViewModel @Inject constructor() :
-    ViewModelBase<RemoteVaultsScreenState>(RemoteVaultsScreenState("")) {
+    ViewModelBase<RemoteVaultsScreenState>(RemoteVaultsScreenState()) {
 
 }

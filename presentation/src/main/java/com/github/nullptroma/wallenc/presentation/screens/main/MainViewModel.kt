@@ -12,7 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 
 @HiltViewModel
 class MainViewModel @javax.inject.Inject constructor(savedStateHandle: SavedStateHandle) :
-    ViewModelBase<MainScreenState>(MainScreenState("default string")) {
+    ViewModelBase<MainScreenState>(MainScreenState()) {
 
     @OptIn(SavedStateHandleSaveableApi::class)
     var routes by savedStateHandle.saveable {
