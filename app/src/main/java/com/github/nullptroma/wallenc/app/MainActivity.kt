@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import com.github.nullptroma.wallenc.presentation.WallencUi
 import dagger.hilt.android.AndroidEntryPoint
 
+class Container<T>(val value: T)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -18,7 +19,8 @@ class MainActivity : ComponentActivity() {
 //        val launcher =
 //            registerForActivityResult(sdk.contract) { result -> handleResult(result) }
 //        val loginOptions = YandexAuthLoginOptions(LoginType.CHROME_TAB)
-
+        val cont1 = Container(true)
+        var cont2 = Container<Boolean>(true)
         setContent {
             WallencUi()
         }
