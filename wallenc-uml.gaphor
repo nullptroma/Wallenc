@@ -535,8 +535,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="7674e432-ac14-11ef-8a1c-ed3b97af40b9"/>
 <ref refid="c6ecf183-93dd-11ef-9baf-9fe103139892"/>
 <ref refid="eeb188ee-937f-11ef-800c-1711e1dd68e8"/>
-<ref refid="fca97806-949f-11ef-b39e-9b5d5b59175b"/>
-<ref refid="a2e9abed-94a0-11ef-830c-9b5d5b59175b"/>
 <ref refid="a0ee97e8-96af-11ef-8117-23eecc9d3f9f"/>
 <ref refid="9760e377-96ef-11ef-9ee1-3ba703bb2331"/>
 <ref refid="33660996-962b-11ef-9319-830924f9008e"/>
@@ -1303,17 +1301,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="260a8ffc-9491-11ef-b16d-9b5d5b59175b"/>
 </supplier>
 </Dependency>
-<Property id="fca97806-949f-11ef-b39e-9b5d5b59175b">
-<interface_>
-<ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
-</interface_>
-<isReadOnly>
-<val>1</val>
-</isReadOnly>
-<name>
-<val>+ totalSpace: StateFlow&lt;Integer[0..1]&gt;</val>
-</name>
-</Property>
 <Operation id="7ad15a7c-94a0-11ef-90c1-9b5d5b59175b">
 <interface_>
 <ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
@@ -1341,17 +1328,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>String</val>
 </typeValue>
 </Parameter>
-<Property id="a2e9abed-94a0-11ef-830c-9b5d5b59175b">
-<interface_>
-<ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
-</interface_>
-<isReadOnly>
-<val>1</val>
-</isReadOnly>
-<name>
-<val>+ availableSpace: StateFlow&lt;Integer[0..1]&gt;</val>
-</name>
-</Property>
 <Operation id="65a4baa8-9613-11ef-86f7-830924f9008e">
 <interface_>
 <ref refid="44426384-949b-11ef-8612-9b5d5b59175b"/>
@@ -3366,6 +3342,8 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="43879923-af11-11ef-8c68-cf9202569821"/>
 <ref refid="466a8346-af11-11ef-9976-cf9202569821"/>
 <ref refid="4a7b6f2c-af11-11ef-aee3-cf9202569821"/>
+<ref refid="6fedb071-beda-11ef-993b-e90029242394"/>
+<ref refid="74102473-beda-11ef-9bee-e90029242394"/>
 </reflist>
 </ownedAttribute>
 <package>
@@ -3393,7 +3371,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>355.0</val>
 </width>
 <height>
-<val>134.0</val>
+<val>168.0</val>
 </height>
 <diagram>
 <ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
@@ -3425,7 +3403,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 29.099681659149553, 1343.3520695479824)</val>
 </matrix>
 <points>
-<val>[(283.40031834085045, -3.35206954798241), (283.40031834085045, -168.3520695479824)]</val>
+<val>[(283.40031834085045, -3.35206954798241), (283.40031834085045, -134.3520695479824)]</val>
 </points>
 <head-connection>
 <ref refid="a9689781-945a-11ef-a65b-21844220910b"/>
@@ -3566,5 +3544,21 @@ existing classes or even new classes with specific responsibilities.</val>
 <upperValue>
 <val>1</val>
 </upperValue>
+</Property>
+<Property id="6fedb071-beda-11ef-993b-e90029242394">
+<interface_>
+<ref refid="04645ae3-af11-11ef-b181-cf9202569821"/>
+</interface_>
+<name>
+<val>+ totalSpace: StateFlow&lt;Integer[0..1]&gt;</val>
+</name>
+</Property>
+<Property id="74102473-beda-11ef-9bee-e90029242394">
+<interface_>
+<ref refid="04645ae3-af11-11ef-b181-cf9202569821"/>
+</interface_>
+<name>
+<val>+ availableSpace: StateFlow&lt;Integer[0..1]&gt;</val>
+</name>
 </Property>
 </gaphor>

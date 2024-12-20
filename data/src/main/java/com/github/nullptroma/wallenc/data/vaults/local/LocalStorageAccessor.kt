@@ -7,6 +7,7 @@ import com.github.nullptroma.wallenc.domain.models.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,8 @@ class LocalStorageAccessor(
     private val _size = MutableStateFlow<Long?>(null)
     private val _numberOfFiles = MutableStateFlow<Int?>(null)
     private val _isAvailable = MutableStateFlow(false)
+    private val _filesUpdates = MutableSharedFlow<DataPackage<IFile>>()
+    private val _dirsUpdates = MutableSharedFlow<DataPackage<IDirectory>>()
 
     override val size: StateFlow<Long?>
         get() = _size
@@ -33,9 +36,9 @@ class LocalStorageAccessor(
     override val isAvailable: StateFlow<Boolean>
         get() = _isAvailable
     override val filesUpdates: SharedFlow<DataPackage<IFile>>
-        get() = TODO("Not yet implemented")
+        get() = _filesUpdates
     override val dirsUpdates: SharedFlow<DataPackage<IDirectory>>
-        get() = TODO("Not yet implemented")
+        get() = _dirsUpdates
 
     init {
         CoroutineScope(ioDispatcher).launch {
@@ -77,15 +80,15 @@ class LocalStorageAccessor(
         _numberOfFiles.value = numOfFiles
     }
 
-    override suspend fun getAllFiles(): List<IFile> {
+    override suspend fun getAllFiles(): List<IFile> = withContext(ioDispatcher) {
         if(checkAvailable() == false)
-            return listOf()
+            return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-
+        return@withContext listOf()
     }
 
-    override suspend fun getFiles(path: String): List<IFile> {
+    override suspend fun getFiles(path: String): List<IFile> = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
@@ -93,11 +96,11 @@ class LocalStorageAccessor(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAllDirs(): List<IDirectory> {
+    override suspend fun getAllDirs(): List<IDirectory> = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getDirs(path: String): List<IDirectory> {
+    override suspend fun getDirs(path: String): List<IDirectory> = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
@@ -105,35 +108,35 @@ class LocalStorageAccessor(
         TODO("Not yet implemented")
     }
 
-    override suspend fun touchFile(path: String) {
+    override suspend fun touchFile(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun touchDir(path: String) {
+    override suspend fun touchDir(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun delete(path: String) {
+    override suspend fun delete(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getFileInfo(path: String) {
+    override suspend fun getFileInfo(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getDirInfo(path: String) {
+    override suspend fun getDirInfo(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun openWrite(path: String): InputStream {
+    override suspend fun openWrite(path: String): InputStream = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun openRead(path: String): OutputStream {
+    override suspend fun openRead(path: String): OutputStream = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun moveToTrash(path: String) {
+    override suspend fun moveToTrash(path: String) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 }
