@@ -13,9 +13,10 @@ class LocalVaultViewModel @Inject constructor(private val getAllRawStoragesUseCa
     init {
         viewModelScope.launch {
             getAllRawStoragesUseCase.localStorage.storages.collect {
-                mutableUiState.value = mutableUiState.value.copy(
+                val newState = state.value.copy(
                     storagesList = it
                 )
+                updateState(newState)
             }
         }
     }

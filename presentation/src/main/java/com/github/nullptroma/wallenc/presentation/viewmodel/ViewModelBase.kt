@@ -4,11 +4,19 @@ package com.github.nullptroma.wallenc.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 
 abstract class ViewModelBase<TState>(initState: TState) : ViewModel() {
-    protected val mutableUiState = MutableStateFlow<TState>(initState)
+    private val _state = MutableStateFlow<TState>(initState)
 
-    val uiState: StateFlow<TState>
-        get() = mutableUiState.asStateFlow()
+    init {
+        Timber.d("Init ViewModel ${this.javaClass.name}")
+    }
+
+    val state: StateFlow<TState>
+        get() = _state
+
+    protected fun updateState(newState: TState) {
+        _state.value = newState
+    }
 }

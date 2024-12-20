@@ -9,4 +9,6 @@ interface IVaultInfo {
     val uuid: UUID
     val storages: StateFlow<List<IStorage>>
     val isAvailable: StateFlow<Boolean>
+    val totalSpace: StateFlow<Int?>
+    val availableSpace: StateFlow<Int?>
 }
