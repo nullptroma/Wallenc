@@ -9,7 +9,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -34,6 +34,10 @@ android {
 }
 
 dependencies {
+    // jackson
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.datatype.jsr310)
+
     // Timber
     implementation(libs.timber)
 
@@ -45,9 +49,8 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
     implementation(libs.retrofit.converter.scalars)
-    implementation(libs.google.gson)
+    implementation(libs.retrofit.converter.jackson)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

@@ -21,7 +21,7 @@ interface IStorageAccessor {
      * @param path Путь к директории
      * @return Поток файлов
      */
-    fun getFilesFlow(path: String): Flow<DataPackage<IFile>>
+    fun getFilesFlow(path: String): Flow<DataPackage<List<IFile>>>
 
     suspend fun getAllDirs(): List<IDirectory>
     suspend fun getDirs(path: String): List<IDirectory>
@@ -30,7 +30,7 @@ interface IStorageAccessor {
      * @param path Путь к директории
      * @return Поток директорий
      */
-    fun getDirsFlow(path: String): Flow<DataPackage<IDirectory>>
+    fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>>
 
     suspend fun touchFile(path: String)
     suspend fun touchDir(path: String)

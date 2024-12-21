@@ -18,12 +18,23 @@ import kotlin.io.path.createDirectory
 import kotlin.io.path.pathString
 
 class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context) : IVault {
-    private val _path = MutableStateFlow<File?>(null)
-    private val _storages = MutableStateFlow(listOf<IStorage>())
-    private val _totalSpace = MutableStateFlow(null)
-    private val _availableSpace = MutableStateFlow(null)
-    private val _isAvailable = MutableStateFlow(false)
+    override val type: VaultType = VaultType.LOCAL
+    override val uuid: UUID
+        get() = TODO("Not yet implemented")
 
+    private val _storages = MutableStateFlow(listOf<IStorage>())
+    override val storages: StateFlow<List<IStorage>> = _storages
+
+    private val _isAvailable = MutableStateFlow(false)
+    override val isAvailable: StateFlow<Boolean> = _isAvailable
+
+    private val _totalSpace = MutableStateFlow(null)
+    override val totalSpace: StateFlow<Int?> = _totalSpace
+
+    private val _availableSpace = MutableStateFlow(null)
+    override val availableSpace: StateFlow<Int?> = _availableSpace
+
+    private val _path = MutableStateFlow<File?>(null)
 
     init {
         CoroutineScope(ioDispatcher).launch {
@@ -35,7 +46,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
 
     private fun readStorages() {
         val path = _path.value
-        if (path == null || _isAvailable.value == false)
+        if (path == null || !_isAvailable.value)
             return
 
         val dirs = path.listFiles()?.filter { it.isDirectory }
@@ -49,7 +60,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
 
     override suspend fun createStorage(): IStorage = withContext(ioDispatcher) {
         val path = _path.value
-        if (path == null || _isAvailable.value == false)
+        if (path == null || !_isAvailable.value)
             throw Exception("Not available")
 
         val uuid = UUID.randomUUID()
@@ -78,16 +89,4 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     override suspend fun remove(storage: IStorage) = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
-
-    override val type: VaultType = VaultType.LOCAL
-    override val uuid: UUID
-        get() = TODO("Not yet implemented")
-    override val storages: StateFlow<List<IStorage>>
-        get() = _storages
-    override val isAvailable: StateFlow<Boolean>
-        get() = _isAvailable
-    override val totalSpace: StateFlow<Int?>
-        get() = _totalSpace
-    override val availableSpace: StateFlow<Int?>
-        get() = _availableSpace
 }

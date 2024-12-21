@@ -4,8 +4,7 @@ import java.time.LocalDateTime
 
 
 interface IMetaInfo {
-    val name: String
-    val size: Int
+    val size: Long
     val isDeleted: Boolean
     val isHidden: Boolean
     val lastModified: LocalDateTime
