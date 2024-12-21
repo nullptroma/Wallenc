@@ -11,6 +11,7 @@ import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.DataPage
 import com.github.nullptroma.wallenc.domain.models.IDirectory
 import com.github.nullptroma.wallenc.domain.models.IFile
+import com.github.nullptroma.wallenc.domain.models.IMetaInfo
 import com.github.nullptroma.wallenc.domain.models.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -96,6 +97,9 @@ class LocalStorageAccessor(
                 callback(child)
             }
 
+            if (useCallbackForSelf)
+                callback(dir)
+
             if (maxDepth != 0) {
                 val nextMaxDepth = if (maxDepth > 0) maxDepth - 1 else maxDepth
                 for (child in children) {
@@ -105,9 +109,9 @@ class LocalStorageAccessor(
                 }
             }
         }
-
-        if (useCallbackForSelf)
+        else if (useCallbackForSelf) {
             callback(dir)
+        }
     }
 
     /**
@@ -117,13 +121,22 @@ class LocalStorageAccessor(
     private suspend fun scanStorage(
         baseStoragePath: String,
         maxDepth: Int,
-        fileCallback: suspend (LocalFile) -> Unit = {},
-        dirCallback: suspend (LocalDirectory) -> Unit = {}
+        fileCallback: (suspend (File, LocalFile) -> Unit)? = null,
+        dirCallback: (suspend (File, LocalDirectory) -> Unit)? = null
     ) {
         if (!checkAvailable())
             throw Exception("Not available")
         val basePath = Path(_absolutePath.pathString, baseStoragePath)
+        val workedFiles = mutableSetOf<String>()
+        val workedMetaFiles = mutableSetOf<String>()
+        var count = 0
         scanFileSystem(basePath.toFile(), maxDepth, { file ->
+            // Если парный файл уже был обработан - скип. Это позволит не читать metaFile дважды
+            if(workedFiles.contains(file.absolutePath) || workedMetaFiles.contains(file.absolutePath)) {
+                count++
+                return@scanFileSystem
+            }
+
             val filePath = Path(file.absolutePath)
 
             // если это файл с мета-информацией - пропустить
@@ -132,46 +145,60 @@ class LocalStorageAccessor(
                 try {
                     val reader = file.bufferedReader()
                     val meta : LocalMetaInfo = _jackson.readValue(reader)
-                    val fileInMeta = File(Path(_absolutePath.pathString, meta.path).pathString)
-                    if (!fileInMeta.exists())
+                    val pathString = Path(_absolutePath.pathString, meta.path).pathString
+                    val originalFile = File(pathString)
+                    if (!originalFile.exists())
                         file.delete()
+
+                    // если успешно прочитано - отправить колбек и добавить обработанный файл
+                    workedFiles.add(pathString)
+                    workedMetaFiles.add(file.absolutePath)
+                    if (file.isFile) {
+                        fileCallback?.invoke(originalFile, LocalFile(meta))
+                    } else {
+                        dirCallback?.invoke(originalFile, LocalDirectory(meta, null))
+                    }
                 } catch (e: JacksonException) {
                     file.delete()
                 }
+
                 return@scanFileSystem
             }
+            else {
+                val metaFilePath = Path(
+                    if (file.isFile) {
+                        file.absolutePath + META_INFO_POSTFIX
+                    } else {
+                        Path(file.absolutePath, META_INFO_POSTFIX).pathString
+                    }
+                )
+                val metaFile = metaFilePath.toFile()
+                val metaInfo: LocalMetaInfo
+                val storageFilePath = "/" + filePath.relativeTo(_absolutePath)
 
-            val metaFilePath = Path(
-                if (file.isFile) {
-                    file.absolutePath + META_INFO_POSTFIX
+                if (!metaFile.exists()) {
+                    metaInfo = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
+                    _jackson.writeValue(metaFile, metaInfo)
                 } else {
-                    Path(file.absolutePath, META_INFO_POSTFIX).pathString
+                    var readMeta: LocalMetaInfo
+                    try {
+                        val reader = metaFile.bufferedReader()
+                        readMeta = _jackson.readValue(reader)
+                    } catch (e: JacksonException) {
+                        // если файл повреждён - пересоздать
+                        readMeta = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
+                        _jackson.writeValue(metaFile, readMeta)
+                    }
+                    metaInfo = readMeta
                 }
-            )
-            val metaFile = metaFilePath.toFile()
-            val metaInfo: LocalMetaInfo
-            val storageFilePath = "/" + filePath.relativeTo(_absolutePath)
 
-            if (!metaFile.exists()) {
-                metaInfo = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
-                _jackson.writeValue(metaFile, metaInfo)
-            } else {
-                var readMeta: LocalMetaInfo
-                try {
-                    val reader = metaFile.bufferedReader()
-                    readMeta = _jackson.readValue(reader)
-                } catch (e: JacksonException) {
-                    // если файл повреждён - пересоздать
-                    readMeta = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
-                    _jackson.writeValue(metaFile, readMeta)
+                workedFiles.add(file.absolutePath)
+                workedMetaFiles.add(metaFile.absolutePath)
+                if (file.isFile) {
+                    fileCallback?.invoke(file, LocalFile(metaInfo))
+                } else {
+                    dirCallback?.invoke(file, LocalDirectory(metaInfo, null))
                 }
-                metaInfo = readMeta
-            }
-
-            if (file.isFile) {
-                fileCallback(LocalFile(metaInfo))
-            } else {
-                dirCallback(LocalDirectory(metaInfo, null))
             }
         })
     }
@@ -206,8 +233,8 @@ class LocalStorageAccessor(
         var size = 0L
         var numOfFiles = 0
 
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = {
-            size += it.metaInfo.size
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, localFile ->
+            size += localFile.metaInfo.size
             numOfFiles++
         })
 
@@ -220,8 +247,8 @@ class LocalStorageAccessor(
             return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = {
-            list.add(it)
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, localFile ->
+            list.add(localFile)
         })
         return@withContext list
     }
@@ -231,8 +258,8 @@ class LocalStorageAccessor(
             return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = {
-            list.add(it)
+        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, localFile ->
+            list.add(localFile)
         })
         return@withContext list
     }
@@ -243,7 +270,7 @@ class LocalStorageAccessor(
 
         val buf = mutableListOf<IFile>()
         var pageNumber = 0
-        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = {
+        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, localFile ->
             if(buf.size == DATA_PAGE_LENGTH) {
                 val page = DataPage(
                     list = buf.toList(),
@@ -256,7 +283,7 @@ class LocalStorageAccessor(
                 emit(page)
                 buf.clear()
             }
-            buf.add(it)
+            buf.add(localFile)
         })
         // отправка последней страницы
         val page = DataPage(

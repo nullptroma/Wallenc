@@ -25,9 +25,9 @@ fun LocalVaultScreen(modifier: Modifier = Modifier,
             Card(modifier = Modifier.clickable {
                 viewModel.printAllFilesToLog(it)
             }) {
-                val available = it.isAvailable.collectAsStateWithLifecycle()
-                val numOfFiles = it.isAvailable.collectAsStateWithLifecycle()
-                val size = it.isAvailable.collectAsStateWithLifecycle()
+                val available by it.isAvailable.collectAsStateWithLifecycle()
+                val numOfFiles by it.numberOfFiles.collectAsStateWithLifecycle()
+                val size by it.size.collectAsStateWithLifecycle()
                 Column {
                     Text(it.uuid.toString())
                     Text("IsAvailable: $available")
