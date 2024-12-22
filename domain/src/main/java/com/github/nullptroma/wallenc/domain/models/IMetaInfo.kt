@@ -1,12 +1,12 @@
 package com.github.nullptroma.wallenc.domain.models
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 
 interface IMetaInfo {
     val size: Long
     val isDeleted: Boolean
     val isHidden: Boolean
-    val lastModified: LocalDateTime
+    val lastModified: Instant
     val path: String
 }

@@ -29,7 +29,6 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
-import java.time.LocalDateTime
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.fileSize
@@ -213,7 +212,7 @@ class LocalStorageAccessor(
             size = size,
             isDeleted = false,
             isHidden = false,
-            lastModified = LocalDateTime.now(),
+            lastModified = java.time.Clock.systemUTC().instant(),
             path = storagePath
         )
     }
