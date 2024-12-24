@@ -1,7 +1,6 @@
 package com.github.nullptroma.wallenc.data.vaults.local
 
 import com.fasterxml.jackson.core.JacksonException
-import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalDirectory
@@ -11,7 +10,6 @@ import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.DataPage
 import com.github.nullptroma.wallenc.domain.models.IDirectory
 import com.github.nullptroma.wallenc.domain.models.IFile
-import com.github.nullptroma.wallenc.domain.models.IMetaInfo
 import com.github.nullptroma.wallenc.domain.models.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +38,6 @@ class LocalStorageAccessor(
     private val ioDispatcher: CoroutineDispatcher
 ) : IStorageAccessor {
     private val _absolutePath: Path = Path(absolutePath).normalize().absolute()
-    private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
 
     private val _size = MutableStateFlow<Long?>(null)
     override val size: StateFlow<Long?> = _size
@@ -61,7 +58,7 @@ class LocalStorageAccessor(
         // запускам сканирование хранилища
         CoroutineScope(ioDispatcher).launch {
             Timber.d("Local storage path: $_absolutePath")
-            updateSizeAndNumOfFiles()
+            scanSizeAndNumOfFiles()
         }
     }
 
@@ -107,9 +104,103 @@ class LocalStorageAccessor(
                     }
                 }
             }
-        }
-        else if (useCallbackForSelf) {
+        } else if (useCallbackForSelf) {
             callback(dir)
+        }
+    }
+
+    private class LocalStorageFilePair private constructor(
+        val file: File,
+        val metaFile: File,
+        val meta: LocalMetaInfo
+    ) {
+
+        companion object {
+            private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
+
+            fun fromFile(basePath: Path, file: File): LocalStorageFilePair? {
+                if (!file.exists())
+                    return null
+                if (file.name.endsWith(META_INFO_POSTFIX))
+                    return fromMetaFile(basePath, file)
+
+                val filePath = file.toPath()
+                val metaFilePath = Path(
+                    if (file.isFile) {
+                        file.absolutePath + META_INFO_POSTFIX
+                    } else {
+                        Path(file.absolutePath, META_INFO_POSTFIX).pathString
+                    }
+                )
+                val metaFile = metaFilePath.toFile()
+                val metaInfo: LocalMetaInfo
+                val storageFilePath = "/" + filePath.relativeTo(basePath)
+
+                if (!metaFile.exists()) {
+                    metaInfo = LocalMetaInfo(
+                        size = filePath.fileSize(),
+                        path = storageFilePath
+                    )
+                    _jackson.writeValue(metaFile, metaInfo)
+                } else {
+                    var readMeta: LocalMetaInfo
+                    try {
+                        val reader = metaFile.bufferedReader()
+                        readMeta = _jackson.readValue(reader)
+                    } catch (e: JacksonException) {
+                        // если файл повреждён - пересоздать
+                        readMeta = LocalMetaInfo(
+                            size = filePath.fileSize(),
+                            path = storageFilePath
+                        )
+                        _jackson.writeValue(metaFile, readMeta)
+                    }
+                    metaInfo = readMeta
+                }
+                return LocalStorageFilePair(
+                    file = file,
+                    metaFile = metaFile,
+                    meta = metaInfo
+                )
+            }
+
+            fun fromMetaFile(basePath: Path, metaFile: File): LocalStorageFilePair? {
+                if (!metaFile.exists())
+                    return null
+                if (!metaFile.name.endsWith(META_INFO_POSTFIX))
+                    return fromFile(basePath, metaFile)
+                var pair: LocalStorageFilePair? = null
+                try {
+                    val reader = metaFile.bufferedReader()
+                    val metaInfo: LocalMetaInfo = _jackson.readValue(reader)
+                    val pathString = Path(basePath.pathString, metaInfo.path).pathString
+                    val file = File(pathString)
+                    if (!file.exists()) {
+                        metaFile.delete()
+                    } else {
+                        pair = LocalStorageFilePair(
+                            file = file,
+                            metaFile = metaFile,
+                            meta = metaInfo
+                        )
+                    }
+                } catch (e: JacksonException) {
+                    metaFile.delete()
+                }
+                return pair
+            }
+
+            fun from(basePath: Path, anyFile: File): LocalStorageFilePair? {
+                return if (anyFile.name.endsWith(META_INFO_POSTFIX))
+                    fromMetaFile(basePath, anyFile)
+                else
+                    fromFile(basePath, anyFile)
+            }
+
+            fun from(basePath: Path, storagePath: String): LocalStorageFilePair? {
+                val filePath = Path(basePath.pathString, storagePath)
+                return from(basePath, filePath.toFile())
+            }
         }
     }
 
@@ -128,93 +219,25 @@ class LocalStorageAccessor(
         val basePath = Path(_absolutePath.pathString, baseStoragePath)
         val workedFiles = mutableSetOf<String>()
         val workedMetaFiles = mutableSetOf<String>()
-        var count = 0
+
         scanFileSystem(basePath.toFile(), maxDepth, { file ->
             // Если парный файл уже был обработан - скип. Это позволит не читать metaFile дважды
-            if(workedFiles.contains(file.absolutePath) || workedMetaFiles.contains(file.absolutePath)) {
-                count++
+            if (workedFiles.contains(file.absolutePath) || workedMetaFiles.contains(file.absolutePath)) {
                 return@scanFileSystem
             }
 
-            val filePath = Path(file.absolutePath)
+            val pair = LocalStorageFilePair.from(_absolutePath, file)
+            if(pair != null) {
+                workedFiles.add(pair.file.absolutePath)
+                workedMetaFiles.add(pair.metaFile.absolutePath)
 
-            // если это файл с мета-информацией - пропустить
-            if (filePath.pathString.endsWith(META_INFO_POSTFIX)) {
-                // Если не удаётся прочитать метаданные или они указывают на несуществующий файл - удалить
-                try {
-                    val reader = file.bufferedReader()
-                    val meta : LocalMetaInfo = _jackson.readValue(reader)
-                    val pathString = Path(_absolutePath.pathString, meta.path).pathString
-                    val originalFile = File(pathString)
-                    if (!originalFile.exists())
-                        file.delete()
-
-                    // если успешно прочитано - отправить колбек и добавить обработанный файл
-                    workedFiles.add(pathString)
-                    workedMetaFiles.add(file.absolutePath)
-                    if (file.isFile) {
-                        fileCallback?.invoke(originalFile, LocalFile(meta))
-                    } else {
-                        dirCallback?.invoke(originalFile, LocalDirectory(meta, null))
-                    }
-                } catch (e: JacksonException) {
-                    file.delete()
-                }
-
-                return@scanFileSystem
-            }
-            else {
-                val metaFilePath = Path(
-                    if (file.isFile) {
-                        file.absolutePath + META_INFO_POSTFIX
-                    } else {
-                        Path(file.absolutePath, META_INFO_POSTFIX).pathString
-                    }
-                )
-                val metaFile = metaFilePath.toFile()
-                val metaInfo: LocalMetaInfo
-                val storageFilePath = "/" + filePath.relativeTo(_absolutePath)
-
-                if (!metaFile.exists()) {
-                    metaInfo = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
-                    _jackson.writeValue(metaFile, metaInfo)
+                if (pair.file.isFile) {
+                    fileCallback?.invoke(pair.file, LocalFile(pair.meta))
                 } else {
-                    var readMeta: LocalMetaInfo
-                    try {
-                        val reader = metaFile.bufferedReader()
-                        readMeta = _jackson.readValue(reader)
-                    } catch (e: JacksonException) {
-                        // если файл повреждён - пересоздать
-                        readMeta = createNewLocalMetaInfo(storageFilePath, filePath.fileSize())
-                        _jackson.writeValue(metaFile, readMeta)
-                    }
-                    metaInfo = readMeta
-                }
-
-                workedFiles.add(file.absolutePath)
-                workedMetaFiles.add(metaFile.absolutePath)
-                if (file.isFile) {
-                    fileCallback?.invoke(file, LocalFile(metaInfo))
-                } else {
-                    dirCallback?.invoke(file, LocalDirectory(metaInfo, null))
+                    dirCallback?.invoke(pair.file, LocalDirectory(pair.meta, null))
                 }
             }
         })
-    }
-
-    /**
-     * Создаёт LocalMetaInfo, не требуя наличие файла в файловой системе
-     * @param storagePath полный путь в Storage
-     * @param size размер файла
-     */
-    private fun createNewLocalMetaInfo(storagePath: String, size: Long): LocalMetaInfo {
-        return LocalMetaInfo(
-            size = size,
-            isDeleted = false,
-            isHidden = false,
-            lastModified = java.time.Clock.systemUTC().instant(),
-            path = storagePath
-        )
     }
 
 
@@ -222,7 +245,7 @@ class LocalStorageAccessor(
      * Считает файлы и их размер. Не бросает исключения, если файлы недоступны
      * @throws none Если возникла ошибка, оставляет размер и количества файлов равными null
      */
-    private suspend fun updateSizeAndNumOfFiles() {
+    private suspend fun scanSizeAndNumOfFiles() {
         if (!checkAvailable()) {
             _size.value = null
             _numberOfFiles.value = null
@@ -235,6 +258,11 @@ class LocalStorageAccessor(
         scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, localFile ->
             size += localFile.metaInfo.size
             numOfFiles++
+
+            if(numOfFiles % DATA_PAGE_LENGTH == 0) {
+                _size.value = size
+                _numberOfFiles.value = numOfFiles
+            }
         })
 
         _size.value = size
@@ -270,7 +298,7 @@ class LocalStorageAccessor(
         val buf = mutableListOf<IFile>()
         var pageNumber = 0
         scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, localFile ->
-            if(buf.size == DATA_PAGE_LENGTH) {
+            if (buf.size == DATA_PAGE_LENGTH) {
                 val page = DataPage(
                     list = buf.toList(),
                     isLoading = false,
@@ -297,7 +325,14 @@ class LocalStorageAccessor(
     }.flowOn(ioDispatcher)
 
     override suspend fun getAllDirs(): List<IDirectory> = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+        if (!checkAvailable())
+            return@withContext listOf()
+
+        val list = mutableListOf<IDirectory>()
+        scanStorage(baseStoragePath = "/", maxDepth = -1, dirCallback = { _, localDir ->
+            list.add(localDir)
+        })
+        return@withContext list
     }
 
     override suspend fun getDirs(path: String): List<IDirectory> = withContext(ioDispatcher) {

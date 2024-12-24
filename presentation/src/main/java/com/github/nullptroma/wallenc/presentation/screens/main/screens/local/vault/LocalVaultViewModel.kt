@@ -1,6 +1,10 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
+import android.app.Activity
+import android.widget.Toast
 import androidx.lifecycle.viewModelScope
+import com.github.nullptroma.wallenc.domain.models.IDirectory
+import com.github.nullptroma.wallenc.domain.models.IFile
 import com.github.nullptroma.wallenc.domain.models.IStorage
 import com.github.nullptroma.wallenc.domain.usecases.GetAllRawStoragesUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
@@ -9,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class LocalVaultViewModel @Inject constructor(
@@ -30,11 +35,21 @@ class LocalVaultViewModel @Inject constructor(
     fun printAllFilesToLog(storage: IStorage) {
         _storageFileManagementUseCase.setStorage(storage)
         viewModelScope.launch {
-            val files = _storageFileManagementUseCase.getAllFiles()
+            val files: List<IFile>
+            val dirs: List<IDirectory>
+            val time = measureTimeMillis {
+                files = _storageFileManagementUseCase.getAllFiles()
+                dirs = _storageFileManagementUseCase.getAllDirs()
+            }
             for (file in files) {
-                Timber.tag("File")
+                Timber.tag("Files")
                 Timber.d(file.metaInfo.toString())
             }
+            for (dir in dirs) {
+                Timber.tag("Dirs")
+                Timber.d(dir.metaInfo.toString())
+            }
+            Timber.d("Time: $time ms")
         }
     }
 }

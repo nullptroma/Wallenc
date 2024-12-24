@@ -6,8 +6,8 @@ import java.time.Instant
 
 data class LocalMetaInfo(
     override val size: Long,
-    override val isDeleted: Boolean,
-    override val isHidden: Boolean,
-    override val lastModified: Instant,
+    override val isDeleted: Boolean = false,
+    override val isHidden: Boolean = false,
+    override val lastModified: Instant = java.time.Clock.systemUTC().instant(),
     override val path: String
 ) : IMetaInfo
