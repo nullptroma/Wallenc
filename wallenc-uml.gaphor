@@ -1209,8 +1209,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="65a4baa8-9613-11ef-86f7-830924f9008e"/>
 <ref refid="6e3f7c1c-9613-11ef-98ca-830924f9008e"/>
 <ref refid="88974282-9613-11ef-bbae-830924f9008e"/>
-<ref refid="9c27a6ba-9613-11ef-aae0-830924f9008e"/>
-<ref refid="a1007ad1-9613-11ef-bab0-830924f9008e"/>
 <ref refid="a9e08b31-9613-11ef-a5b0-830924f9008e"/>
 <ref refid="b2c24289-9613-11ef-9d22-830924f9008e"/>
 <ref refid="bd882d77-9613-11ef-9b99-830924f9008e"/>
@@ -1404,60 +1402,6 @@ existing classes or even new classes with specific responsibilities.</val>
 </name>
 <ownerFormalParam>
 <ref refid="88974282-9613-11ef-bbae-830924f9008e"/>
-</ownerFormalParam>
-<typeValue>
-<val>Uri</val>
-</typeValue>
-</Parameter>
-<Operation id="9c27a6ba-9613-11ef-aae0-830924f9008e">
-<interface_>
-<ref refid="44426384-949b-11ef-8612-9b5d5b59175b"/>
-</interface_>
-<name>
-<val>getFileInfo</val>
-</name>
-<ownedParameter>
-<reflist>
-<ref refid="9c2a08b8-9613-11ef-98c6-830924f9008e"/>
-</reflist>
-</ownedParameter>
-</Operation>
-<Parameter id="9c2a08b8-9613-11ef-98c6-830924f9008e">
-<direction>
-<val>in</val>
-</direction>
-<name>
-<val>path</val>
-</name>
-<ownerFormalParam>
-<ref refid="9c27a6ba-9613-11ef-aae0-830924f9008e"/>
-</ownerFormalParam>
-<typeValue>
-<val>Uri</val>
-</typeValue>
-</Parameter>
-<Operation id="a1007ad1-9613-11ef-bab0-830924f9008e">
-<interface_>
-<ref refid="44426384-949b-11ef-8612-9b5d5b59175b"/>
-</interface_>
-<name>
-<val>getDirInfo</val>
-</name>
-<ownedParameter>
-<reflist>
-<ref refid="a103d601-9613-11ef-8f30-830924f9008e"/>
-</reflist>
-</ownedParameter>
-</Operation>
-<Parameter id="a103d601-9613-11ef-8f30-830924f9008e">
-<direction>
-<val>in</val>
-</direction>
-<name>
-<val>path</val>
-</name>
-<ownerFormalParam>
-<ref refid="a1007ad1-9613-11ef-bab0-830924f9008e"/>
 </ownerFormalParam>
 <typeValue>
 <val>Uri</val>

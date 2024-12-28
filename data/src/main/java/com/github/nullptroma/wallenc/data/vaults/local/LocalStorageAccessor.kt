@@ -26,6 +26,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
@@ -34,10 +35,11 @@ import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 
 class LocalStorageAccessor(
-    absolutePath: String,
+    filesystemBasePath: String,
     private val ioDispatcher: CoroutineDispatcher
 ) : IStorageAccessor {
-    private val _absolutePath: Path = Path(absolutePath).normalize().absolute()
+    private val _filesystemBasePath: Path = Path(filesystemBasePath).normalize().absolute()
+    private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
 
     private val _size = MutableStateFlow<Long?>(null)
     override val size: StateFlow<Long?> = _size
@@ -57,7 +59,7 @@ class LocalStorageAccessor(
     init {
         // запускам сканирование хранилища
         CoroutineScope(ioDispatcher).launch {
-            Timber.d("Local storage path: $_absolutePath")
+            Timber.d("Local storage path: $_filesystemBasePath")
             scanSizeAndNumOfFiles()
         }
     }
@@ -66,7 +68,7 @@ class LocalStorageAccessor(
      * Проверяет существование корневого пути Storage в файловой системе, изменяет _isAvailable
      */
     private fun checkAvailable(): Boolean {
-        _isAvailable.value = _absolutePath.toFile().exists()
+        _isAvailable.value = _filesystemBasePath.toFile().exists()
         return _isAvailable.value
     }
 
@@ -118,11 +120,11 @@ class LocalStorageAccessor(
         companion object {
             private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
 
-            fun fromFile(basePath: Path, file: File): LocalStorageFilePair? {
+            fun fromFile(filesystemBasePath: Path, file: File): LocalStorageFilePair? {
                 if (!file.exists())
                     return null
                 if (file.name.endsWith(META_INFO_POSTFIX))
-                    return fromMetaFile(basePath, file)
+                    return fromMetaFile(filesystemBasePath, file)
 
                 val filePath = file.toPath()
                 val metaFilePath = Path(
@@ -134,7 +136,7 @@ class LocalStorageAccessor(
                 )
                 val metaFile = metaFilePath.toFile()
                 val metaInfo: LocalMetaInfo
-                val storageFilePath = "/" + filePath.relativeTo(basePath)
+                val storageFilePath = "/" + filePath.relativeTo(filesystemBasePath)
 
                 if (!metaFile.exists()) {
                     metaInfo = LocalMetaInfo(
@@ -164,16 +166,16 @@ class LocalStorageAccessor(
                 )
             }
 
-            fun fromMetaFile(basePath: Path, metaFile: File): LocalStorageFilePair? {
+            fun fromMetaFile(filesystemBasePath: Path, metaFile: File): LocalStorageFilePair? {
                 if (!metaFile.exists())
                     return null
                 if (!metaFile.name.endsWith(META_INFO_POSTFIX))
-                    return fromFile(basePath, metaFile)
+                    return fromFile(filesystemBasePath, metaFile)
                 var pair: LocalStorageFilePair? = null
                 try {
                     val reader = metaFile.bufferedReader()
                     val metaInfo: LocalMetaInfo = _jackson.readValue(reader)
-                    val pathString = Path(basePath.pathString, metaInfo.path).pathString
+                    val pathString = Path(filesystemBasePath.pathString, metaInfo.path).pathString
                     val file = File(pathString)
                     if (!file.exists()) {
                         metaFile.delete()
@@ -190,16 +192,16 @@ class LocalStorageAccessor(
                 return pair
             }
 
-            fun from(basePath: Path, anyFile: File): LocalStorageFilePair? {
+            fun from(filesystemBasePath: Path, anyFile: File): LocalStorageFilePair? {
                 return if (anyFile.name.endsWith(META_INFO_POSTFIX))
-                    fromMetaFile(basePath, anyFile)
+                    fromMetaFile(filesystemBasePath, anyFile)
                 else
-                    fromFile(basePath, anyFile)
+                    fromFile(filesystemBasePath, anyFile)
             }
 
-            fun from(basePath: Path, storagePath: String): LocalStorageFilePair? {
-                val filePath = Path(basePath.pathString, storagePath)
-                return from(basePath, filePath.toFile())
+            fun from(filesystemBasePath: Path, storagePath: String): LocalStorageFilePair? {
+                val filePath = Path(filesystemBasePath.pathString, storagePath)
+                return from(filesystemBasePath, filePath.toFile())
             }
         }
     }
@@ -216,7 +218,7 @@ class LocalStorageAccessor(
     ) {
         if (!checkAvailable())
             throw Exception("Not available")
-        val basePath = Path(_absolutePath.pathString, baseStoragePath)
+        val basePath = Path(_filesystemBasePath.pathString, baseStoragePath)
         val workedFiles = mutableSetOf<String>()
         val workedMetaFiles = mutableSetOf<String>()
 
@@ -226,7 +228,7 @@ class LocalStorageAccessor(
                 return@scanFileSystem
             }
 
-            val pair = LocalStorageFilePair.from(_absolutePath, file)
+            val pair = LocalStorageFilePair.from(_filesystemBasePath, file)
             if(pair != null) {
                 workedFiles.add(pair.file.absolutePath)
                 workedMetaFiles.add(pair.metaFile.absolutePath)
@@ -336,43 +338,116 @@ class LocalStorageAccessor(
     }
 
     override suspend fun getDirs(path: String): List<IDirectory> = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+        if (!checkAvailable())
+            return@withContext listOf()
+
+        val list = mutableListOf<IDirectory>()
+        scanStorage(baseStoragePath = path, maxDepth = 0, dirCallback = { _, localDir ->
+            list.add(localDir)
+        })
+        return@withContext list
     }
 
-    override fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>> {
-        TODO("Not yet implemented")
+    override fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>> = flow {
+        if (!checkAvailable())
+            return@flow
+
+        val buf = mutableListOf<IDirectory>()
+        var pageNumber = 0
+        scanStorage(baseStoragePath = path, maxDepth = 0, dirCallback = { _, localDir ->
+            if (buf.size == DATA_PAGE_LENGTH) {
+                val page = DataPage(
+                    list = buf.toList(),
+                    isLoading = false,
+                    isError = false,
+                    hasNext = true,
+                    pageLength = DATA_PAGE_LENGTH,
+                    pageIndex = pageNumber++
+                )
+                emit(page)
+                buf.clear()
+            }
+            buf.add(localDir)
+        })
+        // отправка последней страницы
+        val page = DataPage(
+            list = buf.toList(),
+            isLoading = false,
+            isError = false,
+            hasNext = false,
+            pageLength = DATA_PAGE_LENGTH,
+            pageIndex = pageNumber++
+        )
+        emit(page)
+    }.flowOn(ioDispatcher)
+
+    private fun writeMeta(metaFile: File, meta: LocalMetaInfo) {
+        _jackson.writeValue(metaFile, meta)
     }
 
-    override suspend fun touchFile(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+    private fun createFile(storagePath: String): LocalFile {
+        val path = Path(_filesystemBasePath.pathString, storagePath)
+        val file = path.toFile()
+        if(file.exists() && file.isDirectory) {
+            throw Exception("Что то пошло не так") // TODO
+        }
+        else {
+            file.createNewFile()
+        }
+
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, file) ?: throw Exception("Что то пошло не так") // TODO
+        val newMeta = pair.meta.copy(lastModified = java.time.Clock.systemUTC().instant())
+        writeMeta(pair.metaFile, newMeta)
+        return LocalFile(newMeta)
     }
 
-    override suspend fun touchDir(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+    private fun createDir(storagePath: String): LocalDirectory {
+        val path = Path(_filesystemBasePath.pathString, storagePath)
+        val file = path.toFile()
+        if(file.exists() && !file.isDirectory) {
+            throw Exception("Что то пошло не так") // TODO
+        }
+        else {
+            Files.createDirectories(path)
+        }
+
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, file) ?: throw Exception("Что то пошло не так") // TODO
+        val newMeta = pair.meta.copy(lastModified = java.time.Clock.systemUTC().instant())
+        writeMeta(pair.metaFile, newMeta)
+        return LocalDirectory(newMeta, 0)
+    }
+
+    override suspend fun touchFile(path: String): Unit = withContext(ioDispatcher) {
+        createFile(path)
+    }
+
+    override suspend fun touchDir(path: String): Unit = withContext(ioDispatcher) {
+        createDir(path)
     }
 
     override suspend fun delete(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, path)
+        if(pair != null) {
+            pair.file.delete()
+            pair.metaFile.delete()
+        }
     }
 
-    override suspend fun getFileInfo(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+    override suspend fun openWrite(path: String): OutputStream = withContext(ioDispatcher) {
+        touchFile(path)
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, path) ?: throw Exception("Файла нет") // TODO
+        return@withContext pair.file.outputStream()
     }
 
-    override suspend fun getDirInfo(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun openWrite(path: String): InputStream = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun openRead(path: String): OutputStream = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+    override suspend fun openRead(path: String): InputStream = withContext(ioDispatcher) {
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, path) ?: throw Exception("Файла нет") // TODO
+        return@withContext pair.file.inputStream()
     }
 
     override suspend fun moveToTrash(path: String) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+        val pair = LocalStorageFilePair.from(_filesystemBasePath, path) ?: throw Exception("Файла нет") // TODO
+        val newMeta = pair.meta.copy(isDeleted = true)
+        writeMeta(pair.metaFile, newMeta)
     }
 
     companion object {

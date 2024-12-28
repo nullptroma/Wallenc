@@ -35,9 +35,7 @@ interface IStorageAccessor {
     suspend fun touchFile(path: String)
     suspend fun touchDir(path: String)
     suspend fun delete(path: String)
-    suspend fun getFileInfo(path: String)
-    suspend fun getDirInfo(path: String)
-    suspend fun openWrite(path: String): InputStream
-    suspend fun openRead(path: String): OutputStream
+    suspend fun openWrite(path: String): OutputStream
+    suspend fun openRead(path: String): InputStream
     suspend fun moveToTrash(path: String)
 }
