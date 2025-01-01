@@ -1,7 +1,8 @@
 package com.github.nullptroma.wallenc.app.di.modules.domain
 
-import com.github.nullptroma.wallenc.domain.models.IVaultsManager
+import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import com.github.nullptroma.wallenc.domain.usecases.GetAllRawStoragesUseCase
+import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import dagger.Module
 import dagger.Provides
@@ -16,6 +17,12 @@ class UseCasesModule {
     @Singleton
     fun provideGetAllRawStoragesUseCase(vaultsManager: IVaultsManager): GetAllRawStoragesUseCase {
         return GetAllRawStoragesUseCase(vaultsManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideManageLocalVaultUseCase(vaultsManager: IVaultsManager): ManageLocalVaultUseCase {
+        return ManageLocalVaultUseCase(vaultsManager)
     }
 
     @Provides

@@ -1,8 +1,8 @@
 package com.github.nullptroma.wallenc.data.vaults
 
 import com.github.nullptroma.wallenc.data.vaults.local.LocalVault
-import com.github.nullptroma.wallenc.domain.models.IVault
-import com.github.nullptroma.wallenc.domain.models.IVaultsManager
+import com.github.nullptroma.wallenc.domain.interfaces.IVault
+import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import kotlinx.coroutines.flow.StateFlow
 
 class VaultsManager(override val localVault: LocalVault) : IVaultsManager {

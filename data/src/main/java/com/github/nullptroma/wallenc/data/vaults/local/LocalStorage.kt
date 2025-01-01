@@ -1,7 +1,7 @@
 package com.github.nullptroma.wallenc.data.vaults.local
 
-import com.github.nullptroma.wallenc.domain.models.IStorage
-import com.github.nullptroma.wallenc.domain.models.IStorageAccessor
+import com.github.nullptroma.wallenc.domain.interfaces.IStorage
+import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID

@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.domain.models
+package com.github.nullptroma.wallenc.domain.interfaces
 
 import com.github.nullptroma.wallenc.domain.enums.VaultType
 import kotlinx.coroutines.flow.StateFlow

@@ -8,9 +8,9 @@ import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalFile
 import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.DataPage
-import com.github.nullptroma.wallenc.domain.models.IDirectory
-import com.github.nullptroma.wallenc.domain.models.IFile
-import com.github.nullptroma.wallenc.domain.models.IStorageAccessor
+import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
+import com.github.nullptroma.wallenc.domain.interfaces.IFile
+import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -50,11 +50,11 @@ class LocalStorageAccessor(
     private val _isAvailable = MutableStateFlow(false)
     override val isAvailable: StateFlow<Boolean> = _isAvailable
 
-    private val _filesUpdates = MutableSharedFlow<DataPackage<IFile>>()
-    override val filesUpdates: SharedFlow<DataPackage<IFile>> = _filesUpdates
+    private val _filesUpdates = MutableSharedFlow<DataPage<IFile>>()
+    override val filesUpdates: SharedFlow<DataPage<IFile>> = _filesUpdates
 
-    private val _dirsUpdates = MutableSharedFlow<DataPackage<IDirectory>>()
-    override val dirsUpdates: SharedFlow<DataPackage<IDirectory>> = _dirsUpdates
+    private val _dirsUpdates = MutableSharedFlow<DataPage<IDirectory>>()
+    override val dirsUpdates: SharedFlow<DataPage<IDirectory>> = _dirsUpdates
 
     init {
         // запускам сканирование хранилища

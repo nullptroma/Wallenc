@@ -3,8 +3,8 @@ package com.github.nullptroma.wallenc.data.vaults.local
 import android.content.Context
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.enums.VaultType
-import com.github.nullptroma.wallenc.domain.models.IStorage
-import com.github.nullptroma.wallenc.domain.models.IVault
+import com.github.nullptroma.wallenc.domain.interfaces.IStorage
+import com.github.nullptroma.wallenc.domain.interfaces.IVault
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

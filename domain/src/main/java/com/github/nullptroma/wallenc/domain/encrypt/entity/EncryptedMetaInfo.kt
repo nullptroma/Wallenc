@@ -1,10 +1,10 @@
-package com.github.nullptroma.wallenc.data.vaults.local.entity
+package com.github.nullptroma.wallenc.domain.encrypt.entity
 
 import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import java.time.Instant
 
 
-data class LocalMetaInfo(
+data class EncryptedMetaInfo(
     override val size: Long,
     override val isDeleted: Boolean = false,
     override val isHidden: Boolean = false,

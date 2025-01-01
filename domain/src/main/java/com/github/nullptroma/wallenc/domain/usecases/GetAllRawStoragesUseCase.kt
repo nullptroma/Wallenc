@@ -1,6 +1,6 @@
 package com.github.nullptroma.wallenc.domain.usecases
 
-import com.github.nullptroma.wallenc.domain.models.IVaultsManager
+import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 
 class GetAllRawStoragesUseCase(private val manager: IVaultsManager) {
     //    fun getStoragesFlow() = manager.remoteVaults.combine(manager.localVault) { remote, local ->
@@ -9,6 +9,6 @@ class GetAllRawStoragesUseCase(private val manager: IVaultsManager) {
 //            add(local)
 //        }
 //    }
-    val localStorage
-        get() = manager.localVault
+    val localStorages
+        get() = manager.localVault.storages
 }

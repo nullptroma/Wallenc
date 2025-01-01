@@ -1,12 +1,11 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
-import android.app.Activity
-import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import com.github.nullptroma.wallenc.domain.models.IDirectory
-import com.github.nullptroma.wallenc.domain.models.IFile
-import com.github.nullptroma.wallenc.domain.models.IStorage
-import com.github.nullptroma.wallenc.domain.usecases.GetAllRawStoragesUseCase
+import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
+import com.github.nullptroma.wallenc.domain.interfaces.IFile
+import com.github.nullptroma.wallenc.domain.interfaces.ILogger
+import com.github.nullptroma.wallenc.domain.interfaces.IStorage
+import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,13 +16,13 @@ import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class LocalVaultViewModel @Inject constructor(
-    private val _getAllRawStoragesUseCase: GetAllRawStoragesUseCase,
-    private val _storageFileManagementUseCase: StorageFileManagementUseCase
+    private val _manageLocalVaultUseCase: ManageLocalVaultUseCase,
+    private val _storageFileManagementUseCase: StorageFileManagementUseCase,
 ) :
     ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
     init {
         viewModelScope.launch {
-            _getAllRawStoragesUseCase.localStorage.storages.collect {
+            _manageLocalVaultUseCase.localStorages.collect {
                 val newState = state.value.copy(
                     storagesList = it
                 )
@@ -50,6 +49,12 @@ class LocalVaultViewModel @Inject constructor(
                 Timber.d(dir.metaInfo.toString())
             }
             Timber.d("Time: $time ms")
+        }
+    }
+
+    fun createStorage() {
+        viewModelScope.launch {
+            _manageLocalVaultUseCase.createStorage()
         }
     }
 }

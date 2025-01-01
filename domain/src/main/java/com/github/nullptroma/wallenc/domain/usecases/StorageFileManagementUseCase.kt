@@ -1,8 +1,8 @@
 package com.github.nullptroma.wallenc.domain.usecases
 
-import com.github.nullptroma.wallenc.domain.models.IDirectory
-import com.github.nullptroma.wallenc.domain.models.IFile
-import com.github.nullptroma.wallenc.domain.models.IStorage
+import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
+import com.github.nullptroma.wallenc.domain.interfaces.IFile
+import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 
 class StorageFileManagementUseCase {
     private var _storage: IStorage? = null

@@ -1,6 +1,6 @@
 package com.github.nullptroma.wallenc.data.vaults.local.entity
 
-import com.github.nullptroma.wallenc.domain.models.IDirectory
+import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 
 data class LocalDirectory(
     override val metaInfo: LocalMetaInfo,

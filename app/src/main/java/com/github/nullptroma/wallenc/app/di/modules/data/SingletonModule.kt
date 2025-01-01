@@ -2,9 +2,9 @@ package com.github.nullptroma.wallenc.app.di.modules.data
 
 import android.content.Context
 import com.github.nullptroma.wallenc.app.di.modules.app.IoDispatcher
-import com.github.nullptroma.wallenc.data.vaults.local.LocalVault
 import com.github.nullptroma.wallenc.data.vaults.VaultsManager
-import com.github.nullptroma.wallenc.domain.models.IVaultsManager
+import com.github.nullptroma.wallenc.data.vaults.local.LocalVault
+import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.domain.models
+package com.github.nullptroma.wallenc.domain.interfaces
 
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import kotlinx.coroutines.flow.Flow
@@ -11,8 +11,8 @@ interface IStorageAccessor {
     val size: StateFlow<Long?>
     val numberOfFiles: StateFlow<Int?>
     val isAvailable: StateFlow<Boolean>
-    val filesUpdates: SharedFlow<DataPackage<IFile>>
-    val dirsUpdates: SharedFlow<DataPackage<IDirectory>>
+    val filesUpdates: SharedFlow<DataPackage<List<IFile>>>
+    val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>>
 
     suspend fun getAllFiles(): List<IFile>
     suspend fun getFiles(path: String): List<IFile>
