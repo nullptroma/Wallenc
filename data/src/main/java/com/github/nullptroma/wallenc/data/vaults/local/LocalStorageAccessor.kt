@@ -3,9 +3,9 @@ package com.github.nullptroma.wallenc.data.vaults.local
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalDirectory
-import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalFile
-import com.github.nullptroma.wallenc.data.vaults.local.entity.LocalMetaInfo
+import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
+import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
+import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.DataPage
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
@@ -114,7 +114,7 @@ class LocalStorageAccessor(
     private class LocalStorageFilePair private constructor(
         val file: File,
         val metaFile: File,
-        val meta: LocalMetaInfo
+        val meta: CommonMetaInfo
     ) {
 
         companion object {
@@ -135,23 +135,23 @@ class LocalStorageAccessor(
                     }
                 )
                 val metaFile = metaFilePath.toFile()
-                val metaInfo: LocalMetaInfo
+                val metaInfo: CommonMetaInfo
                 val storageFilePath = "/" + filePath.relativeTo(filesystemBasePath)
 
                 if (!metaFile.exists()) {
-                    metaInfo = LocalMetaInfo(
+                    metaInfo = CommonMetaInfo(
                         size = filePath.fileSize(),
                         path = storageFilePath
                     )
                     _jackson.writeValue(metaFile, metaInfo)
                 } else {
-                    var readMeta: LocalMetaInfo
+                    var readMeta: CommonMetaInfo
                     try {
                         val reader = metaFile.bufferedReader()
                         readMeta = _jackson.readValue(reader)
                     } catch (e: JacksonException) {
                         // если файл повреждён - пересоздать
-                        readMeta = LocalMetaInfo(
+                        readMeta = CommonMetaInfo(
                             size = filePath.fileSize(),
                             path = storageFilePath
                         )
@@ -174,7 +174,7 @@ class LocalStorageAccessor(
                 var pair: LocalStorageFilePair? = null
                 try {
                     val reader = metaFile.bufferedReader()
-                    val metaInfo: LocalMetaInfo = _jackson.readValue(reader)
+                    val metaInfo: CommonMetaInfo = _jackson.readValue(reader)
                     val pathString = Path(filesystemBasePath.pathString, metaInfo.path).pathString
                     val file = File(pathString)
                     if (!file.exists()) {
@@ -213,8 +213,8 @@ class LocalStorageAccessor(
     private suspend fun scanStorage(
         baseStoragePath: String,
         maxDepth: Int,
-        fileCallback: (suspend (File, LocalFile) -> Unit)? = null,
-        dirCallback: (suspend (File, LocalDirectory) -> Unit)? = null
+        fileCallback: (suspend (File, CommonFile) -> Unit)? = null,
+        dirCallback: (suspend (File, CommonDirectory) -> Unit)? = null
     ) {
         if (!checkAvailable())
             throw Exception("Not available")
@@ -234,9 +234,9 @@ class LocalStorageAccessor(
                 workedMetaFiles.add(pair.metaFile.absolutePath)
 
                 if (pair.file.isFile) {
-                    fileCallback?.invoke(pair.file, LocalFile(pair.meta))
+                    fileCallback?.invoke(pair.file, CommonFile(pair.meta))
                 } else {
-                    dirCallback?.invoke(pair.file, LocalDirectory(pair.meta, null))
+                    dirCallback?.invoke(pair.file, CommonDirectory(pair.meta, null))
                 }
             }
         })
@@ -257,8 +257,8 @@ class LocalStorageAccessor(
         var size = 0L
         var numOfFiles = 0
 
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, localFile ->
-            size += localFile.metaInfo.size
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, CommonFile ->
+            size += CommonFile.metaInfo.size
             numOfFiles++
 
             if(numOfFiles % DATA_PAGE_LENGTH == 0) {
@@ -276,8 +276,8 @@ class LocalStorageAccessor(
             return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, localFile ->
-            list.add(localFile)
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, CommonFile ->
+            list.add(CommonFile)
         })
         return@withContext list
     }
@@ -287,8 +287,8 @@ class LocalStorageAccessor(
             return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, localFile ->
-            list.add(localFile)
+        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, CommonFile ->
+            list.add(CommonFile)
         })
         return@withContext list
     }
@@ -299,7 +299,7 @@ class LocalStorageAccessor(
 
         val buf = mutableListOf<IFile>()
         var pageNumber = 0
-        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, localFile ->
+        scanStorage(baseStoragePath = path, maxDepth = 0, fileCallback = { _, CommonFile ->
             if (buf.size == DATA_PAGE_LENGTH) {
                 val page = DataPage(
                     list = buf.toList(),
@@ -312,7 +312,7 @@ class LocalStorageAccessor(
                 emit(page)
                 buf.clear()
             }
-            buf.add(localFile)
+            buf.add(CommonFile)
         })
         // отправка последней страницы
         val page = DataPage(
@@ -381,11 +381,11 @@ class LocalStorageAccessor(
         emit(page)
     }.flowOn(ioDispatcher)
 
-    private fun writeMeta(metaFile: File, meta: LocalMetaInfo) {
+    private fun writeMeta(metaFile: File, meta: CommonMetaInfo) {
         _jackson.writeValue(metaFile, meta)
     }
 
-    private fun createFile(storagePath: String): LocalFile {
+    private fun createFile(storagePath: String): CommonFile {
         val path = Path(_filesystemBasePath.pathString, storagePath)
         val file = path.toFile()
         if(file.exists() && file.isDirectory) {
@@ -398,10 +398,10 @@ class LocalStorageAccessor(
         val pair = LocalStorageFilePair.from(_filesystemBasePath, file) ?: throw Exception("Что то пошло не так") // TODO
         val newMeta = pair.meta.copy(lastModified = java.time.Clock.systemUTC().instant())
         writeMeta(pair.metaFile, newMeta)
-        return LocalFile(newMeta)
+        return CommonFile(newMeta)
     }
 
-    private fun createDir(storagePath: String): LocalDirectory {
+    private fun createDir(storagePath: String): CommonDirectory {
         val path = Path(_filesystemBasePath.pathString, storagePath)
         val file = path.toFile()
         if(file.exists() && !file.isDirectory) {
@@ -414,7 +414,7 @@ class LocalStorageAccessor(
         val pair = LocalStorageFilePair.from(_filesystemBasePath, file) ?: throw Exception("Что то пошло не так") // TODO
         val newMeta = pair.meta.copy(lastModified = java.time.Clock.systemUTC().instant())
         writeMeta(pair.metaFile, newMeta)
-        return LocalDirectory(newMeta, 0)
+        return CommonDirectory(newMeta, 0)
     }
 
     override suspend fun touchFile(path: String): Unit = withContext(ioDispatcher) {

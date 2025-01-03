@@ -1,13 +1,14 @@
 package com.github.nullptroma.wallenc.domain.encrypt
 
+import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
+import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
+import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
-import com.github.nullptroma.wallenc.domain.encrypt.entity.EncryptedDirectory
-import com.github.nullptroma.wallenc.domain.encrypt.entity.EncryptedFile
-import com.github.nullptroma.wallenc.domain.encrypt.entity.EncryptedMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.ILogger
+import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -15,10 +16,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
@@ -46,8 +50,6 @@ class EncryptedStorageAccessor(
     private val _secretKey = SecretKeySpec(key.to32Bytes(), "AES")
 
     init {
-        val enc = encryptPath("/hello/world/test.txt")
-        val dec = decryptPath(enc)
         collectSourceState(CoroutineScope(ioDispatcher))
     }
 
@@ -55,16 +57,7 @@ class EncryptedStorageAccessor(
         coroutineScope.launch {
             launch {
                 source.filesUpdates.collect {
-                    val files = it.data.map {
-                        val meta = it.metaInfo
-                        EncryptedFile(EncryptedMetaInfo(
-                            size = meta.size,
-                            isDeleted = meta.isDeleted,
-                            isHidden = meta.isHidden,
-                            lastModified = meta.lastModified,
-                            path = decryptPath(meta.path)
-                        ))
-                    }
+                    val files = it.data.map(::decryptEntity)
                     _filesUpdates.emit(DataPackage(
                         data = files,
                         isLoading = it.isLoading,
@@ -75,16 +68,7 @@ class EncryptedStorageAccessor(
 
             launch {
                 source.dirsUpdates.collect {
-                    val dirs = it.data.map {
-                        val meta = it.metaInfo
-                        EncryptedDirectory(EncryptedMetaInfo(
-                            size = meta.size,
-                            isDeleted = meta.isDeleted,
-                            isHidden = meta.isHidden,
-                            lastModified = meta.lastModified,
-                            path = decryptPath(meta.path)
-                        ), it.elementsCount)
-                    }
+                    val dirs = it.data.map(::decryptEntity)
                     _dirsUpdates.emit(DataPackage(
                         data = dirs,
                         isLoading = it.isLoading,
@@ -93,6 +77,42 @@ class EncryptedStorageAccessor(
                 }
             }
         }
+    }
+
+    private fun encryptEntity(file: IFile): IFile {
+        return CommonFile(encryptMeta(file.metaInfo))
+    }
+
+    private fun decryptEntity(file: IFile): IFile {
+        return CommonFile(decryptMeta(file.metaInfo))
+    }
+
+    private fun encryptEntity(dir: IDirectory): IDirectory {
+        return CommonDirectory(encryptMeta(dir.metaInfo), dir.elementsCount)
+    }
+
+    private fun decryptEntity(dir: IDirectory): IDirectory {
+        return CommonDirectory(decryptMeta(dir.metaInfo), dir.elementsCount)
+    }
+
+    private fun encryptMeta(meta: IMetaInfo): CommonMetaInfo {
+        return CommonMetaInfo(
+            size = meta.size,
+            isDeleted = meta.isDeleted,
+            isHidden = meta.isHidden,
+            lastModified = meta.lastModified,
+            path = encryptPath(meta.path)
+        )
+    }
+
+    private fun decryptMeta(meta: IMetaInfo): CommonMetaInfo {
+        return CommonMetaInfo(
+            size = meta.size,
+            isDeleted = meta.isDeleted,
+            isHidden = meta.isHidden,
+            lastModified = meta.lastModified,
+            path = decryptPath(meta.path)
+        )
     }
 
     @OptIn(ExperimentalEncodingApi::class)
@@ -121,7 +141,6 @@ class EncryptedStorageAccessor(
         for (segment in path)
             segments.add(encryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
-        logger.debug("encryptPath", "$pathStr to $res")
         return res.pathString
     }
 
@@ -131,56 +150,83 @@ class EncryptedStorageAccessor(
         for (segment in path)
             segments.add(decryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
-        logger.debug("decryptPath", "$pathStr to $res")
         return res.pathString
     }
 
     override suspend fun getAllFiles(): List<IFile> {
-        TODO("Not yet implemented")
+        return source.getAllFiles().map(::decryptEntity)
     }
 
     override suspend fun getFiles(path: String): List<IFile> {
-        TODO("Not yet implemented")
+        return source.getFiles(encryptPath(path)).map(::decryptEntity)
     }
 
     override fun getFilesFlow(path: String): Flow<DataPackage<List<IFile>>> {
-        TODO("Not yet implemented")
+        val flow = source.getFilesFlow(encryptPath(path)).map {
+            DataPackage(
+                data = it.data.map(::decryptEntity),
+                isLoading = it.isLoading,
+                isError = it.isError
+            )
+        }
+        return flow
     }
 
     override suspend fun getAllDirs(): List<IDirectory> {
-        TODO("Not yet implemented")
+        return source.getAllDirs().map(::decryptEntity)
     }
 
     override suspend fun getDirs(path: String): List<IDirectory> {
-        TODO("Not yet implemented")
+        return source.getDirs(encryptPath(path)).map(::decryptEntity)
     }
 
     override fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>> {
-        TODO("Not yet implemented")
+        val flow = source.getDirsFlow(encryptPath(path)).map {
+            DataPackage(
+                data = it.data.map(::decryptEntity),
+                isLoading = it.isLoading,
+                isError = it.isError
+            )
+        }
+        return flow
     }
 
     override suspend fun touchFile(path: String) {
-        TODO("Not yet implemented")
+        source.touchFile(encryptPath(path))
     }
 
     override suspend fun touchDir(path: String) {
-        TODO("Not yet implemented")
+        source.touchDir(encryptPath(path))
     }
 
     override suspend fun delete(path: String) {
-        TODO("Not yet implemented")
+        source.delete(encryptPath(path))
     }
 
     override suspend fun openWrite(path: String): OutputStream {
-        TODO("Not yet implemented")
+        val stream = source.openWrite(encryptPath(path))
+        val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
+        stream.write(iv.iv) // Запись инициализационного вектора сырой файл
+        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv) // инициализация шифратора
+        return CipherOutputStream(stream, cipher)
     }
 
     override suspend fun openRead(path: String): InputStream {
-        TODO("Not yet implemented")
+        val stream = source.openRead(encryptPath(path))
+        val ivBytes = ByteArray(IV_LEN) // Буфер для 16 байт IV
+        val bytesRead = stream.read(ivBytes) // Чтение IV вектора
+        if(bytesRead != IV_LEN)
+            throw Exception("TODO iv не прочитан")
+        val iv = IvParameterSpec(ivBytes)
+
+        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        cipher.init(Cipher.DECRYPT_MODE, _secretKey, iv)
+        return CipherInputStream(stream, cipher)
     }
 
     override suspend fun moveToTrash(path: String) {
-        TODO("Not yet implemented")
+        source.moveToTrash(encryptPath(path))
     }
 
 
