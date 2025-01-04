@@ -12,7 +12,8 @@ class EncryptedStorage(
     source: IStorage,
     key: EncryptKey,
     logger: ILogger,
-    ioDispatcher: CoroutineDispatcher
+    ioDispatcher: CoroutineDispatcher,
+    override val isEncrypted: Boolean
 ) : IStorage {
     override val size: StateFlow<Long?>
         get() = TODO("Not yet implemented")

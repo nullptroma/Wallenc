@@ -3,8 +3,7 @@ package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.va
 import androidx.lifecycle.viewModelScope
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
-import com.github.nullptroma.wallenc.domain.interfaces.ILogger
-import com.github.nullptroma.wallenc.domain.interfaces.IStorage
+import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
@@ -31,7 +30,7 @@ class LocalVaultViewModel @Inject constructor(
         }
     }
 
-    fun printAllFilesToLog(storage: IStorage) {
+    fun printAllFilesToLog(storage: IStorageInfo) {
         _storageFileManagementUseCase.setStorage(storage)
         viewModelScope.launch {
             val files: List<IFile>

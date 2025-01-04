@@ -53,7 +53,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
         if (dirs != null) {
             _storages.value = dirs.map {
                 val uuid = UUID.fromString(it.name)
-                LocalStorage(uuid, it.path, ioDispatcher)
+                LocalStorage(uuid, false, it.path, ioDispatcher)
             }
         }
     }
@@ -66,7 +66,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
         val uuid = UUID.randomUUID()
         val next = Path(path.path, uuid.toString())
         next.createDirectory()
-        val newStorage = LocalStorage(uuid, next.pathString, ioDispatcher)
+        val newStorage = LocalStorage(uuid, false, next.pathString, ioDispatcher)
         _storages.value = _storages.value.toMutableList().apply {
             add(newStorage)
         }

@@ -9,6 +9,7 @@ import java.util.UUID
 
 class LocalStorage(
     override val uuid: UUID,
+    override val isEncrypted: Boolean,
     absolutePath: String,
     ioDispatcher: CoroutineDispatcher
 ) : IStorage {

@@ -4,10 +4,10 @@ import com.github.nullptroma.wallenc.domain.enums.VaultType
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-interface IVaultInfo {
+sealed interface IVaultInfo {
     val type: VaultType
     val uuid: UUID
-    val storages: StateFlow<List<IStorage>>
+    val storages: StateFlow<List<IStorageInfo>>
     val isAvailable: StateFlow<Boolean>
     val totalSpace: StateFlow<Int?>
     val availableSpace: StateFlow<Int?>
