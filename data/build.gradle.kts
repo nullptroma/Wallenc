@@ -38,9 +38,6 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
 
-    // Timber
-    implementation(libs.timber)
-
     // Room
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)

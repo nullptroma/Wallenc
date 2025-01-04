@@ -399,6 +399,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="98e3346a-ac1b-11ef-a8c5-ed3b97af40b9"/>
 <ref refid="04645ae3-af11-11ef-b181-cf9202569821"/>
 <ref refid="f2e44198-af11-11ef-831c-cf9202569821"/>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
 </reflist>
 </ownedType>
 <package>
@@ -438,6 +439,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="98e3adb1-ac1b-11ef-8a4a-ed3b97af40b9"/>
 <ref refid="5d5111fc-9460-11ef-bba8-21844220910b"/>
 <ref refid="0464c929-af11-11ef-9b13-cf9202569821"/>
+<ref refid="ed5765df-ca21-11ef-8c5d-d31b240a181b"/>
 <ref refid="bd162f3c-9492-11ef-a9d7-9b5d5b59175b"/>
 <ref refid="2001a99e-96ae-11ef-b8bc-23eecc9d3f9f"/>
 <ref refid="a065ec3f-96af-11ef-980e-23eecc9d3f9f"/>
@@ -452,6 +454,9 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="d5a5ed88-ac1a-11ef-a250-ed3b97af40b9"/>
 <ref refid="e5704065-96dc-11ef-bb24-edd85b488fb6"/>
 <ref refid="1c18aaf4-af11-11ef-9568-cf9202569821"/>
+<ref refid="37eb93f3-ca22-11ef-bbbe-d31b240a181b"/>
+<ref refid="57152224-ca22-11ef-b91e-d31b240a181b"/>
+<ref refid="5dcc7985-ca22-11ef-8588-d31b240a181b"/>
 </reflist>
 </ownedPresentation>
 </Diagram>
@@ -537,14 +542,8 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="eeb188ee-937f-11ef-800c-1711e1dd68e8"/>
 <ref refid="a0ee97e8-96af-11ef-8117-23eecc9d3f9f"/>
 <ref refid="9760e377-96ef-11ef-9ee1-3ba703bb2331"/>
-<ref refid="33660996-962b-11ef-9319-830924f9008e"/>
 </reflist>
 </ownedAttribute>
-<ownedOperation>
-<reflist>
-<ref refid="7ad15a7c-94a0-11ef-90c1-9b5d5b59175b"/>
-</reflist>
-</ownedOperation>
 <package>
 <ref refid="4652e56b-9248-11ef-8256-d5c6949dbfe2"/>
 </package>
@@ -556,12 +555,13 @@ existing classes or even new classes with specific responsibilities.</val>
 <supplierDependency>
 <reflist>
 <ref refid="d8514010-ac18-11ef-aeb7-ed3b97af40b9"/>
+<ref refid="57745412-ca22-11ef-95f7-d31b240a181b"/>
 </reflist>
 </supplierDependency>
 </Interface>
 <InterfaceItem id="bf0974bf-937f-11ef-b8a5-1711e1dd68e8">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 590.5, 986.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 701.5, 986.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -570,11 +570,14 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>374.0</val>
 </width>
 <height>
-<val>244.0</val>
+<val>168.0</val>
 </height>
 <diagram>
 <ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
 </diagram>
+<show_operations>
+<val>0</val>
+</show_operations>
 <subject>
 <ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
 </subject>
@@ -632,7 +635,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="c240a8c2-93db-11ef-a724-9fe103139892">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 560.95, 0.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 671.95, 0.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -762,7 +765,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="a9689781-945a-11ef-a65b-21844220910b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 59.5, 1340.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 179.5, 1264.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -865,6 +868,11 @@ existing classes or even new classes with specific responsibilities.</val>
 </package>
 </Activity>
 <Interface id="c9b08bac-948c-11ef-a043-9b5d5b59175b">
+<clientDependency>
+<reflist>
+<ref refid="525b1120-ca22-11ef-9de0-d31b240a181b"/>
+</reflist>
+</clientDependency>
 <name>
 <val>IStorageExplorer</val>
 </name>
@@ -895,7 +903,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="c9b11178-948c-11ef-9609-9b5d5b59175b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 583.5, 1340.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 983.5, 1584.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -964,7 +972,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="f0cdedbc-9490-11ef-80e5-9b5d5b59175b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 461.0, 286.5)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 572.0, 286.5)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -1026,7 +1034,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="260b156e-9491-11ef-b802-9b5d5b59175b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 736.5, 278.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 847.5, 278.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -1115,7 +1123,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 1545.0190727547713, 182.35724811729017)</val>
 </matrix>
 <points>
-<val>[(-668.5590727547713, 220.64275188270983), (-705.8590727547713, 330.64275188270983)]</val>
+<val>[(-557.5590727547713, 220.64275188270983), (-594.8590727547713, 330.64275188270983)]</val>
 </points>
 <head-connection>
 <ref refid="260b156e-9491-11ef-b802-9b5d5b59175b"/>
@@ -1225,7 +1233,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="4443053e-949b-11ef-acc6-9b5d5b59175b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 559.0, 513.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 670.0, 513.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -1299,33 +1307,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="260a8ffc-9491-11ef-b16d-9b5d5b59175b"/>
 </supplier>
 </Dependency>
-<Operation id="7ad15a7c-94a0-11ef-90c1-9b5d5b59175b">
-<interface_>
-<ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
-</interface_>
-<name>
-<val>rename</val>
-</name>
-<ownedParameter>
-<reflist>
-<ref refid="7ad47132-94a0-11ef-813f-9b5d5b59175b"/>
-</reflist>
-</ownedParameter>
-</Operation>
-<Parameter id="7ad47132-94a0-11ef-813f-9b5d5b59175b">
-<direction>
-<val>in</val>
-</direction>
-<name>
-<val>newName</val>
-</name>
-<ownerFormalParam>
-<ref refid="7ad15a7c-94a0-11ef-90c1-9b5d5b59175b"/>
-</ownerFormalParam>
-<typeValue>
-<val>String</val>
-</typeValue>
-</Parameter>
 <Operation id="65a4baa8-9613-11ef-86f7-830924f9008e">
 <interface_>
 <ref refid="44426384-949b-11ef-8612-9b5d5b59175b"/>
@@ -1512,20 +1493,6 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>Uri</val>
 </typeValue>
 </Parameter>
-<Property id="33660996-962b-11ef-9319-830924f9008e">
-<interface_>
-<ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
-</interface_>
-<isReadOnly>
-<val>1</val>
-</isReadOnly>
-<name>
-<val>accessor</val>
-</name>
-<typeValue>
-<val>IStorageAccessor</val>
-</typeValue>
-</Property>
 <Property id="9739b902-962b-11ef-9220-830924f9008e">
 <interface_>
 <ref refid="c9b08bac-948c-11ef-a043-9b5d5b59175b"/>
@@ -1713,7 +1680,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 243.16039962225034, 245.31631894795726)</val>
 </matrix>
 <points>
-<val>[(374.8896003777496, 149.18368105204274), (437.8796003777496, 267.68368105204274)]</val>
+<val>[(485.8896003777496, 149.18368105204274), (548.8796003777496, 267.68368105204274)]</val>
 </points>
 <head-connection>
 <ref refid="f0cdedbc-9490-11ef-80e5-9b5d5b59175b"/>
@@ -1758,7 +1725,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 797.1546434276883, 342.4519561875513)</val>
 </matrix>
 <points>
-<val>[(-19.654643427688256, 533.5480438124487), (-19.654643427688256, 643.5480438124487)]</val>
+<val>[(91.34535657231174, 533.5480438124487), (91.34535657231174, 643.5480438124487)]</val>
 </points>
 <head-connection>
 <ref refid="4443053e-949b-11ef-acc6-9b5d5b59175b"/>
@@ -1842,7 +1809,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 203.10890581080406, 345.69270684881207)</val>
 </matrix>
 <points>
-<val>[(567.9510941891958, -177.69270684881207), (648.801094189196, -67.69270684881207)]</val>
+<val>[(678.9510941891958, -177.69270684881207), (759.801094189196, -67.69270684881207)]</val>
 </points>
 <head-connection>
 <ref refid="c240a8c2-93db-11ef-a724-9fe103139892"/>
@@ -1920,7 +1887,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 138.30896896823918, 350.69522175455927)</val>
 </matrix>
 <points>
-<val>[(531.9010310317608, -182.69522175455927), (476.41103103176084, -64.19522175455927)]</val>
+<val>[(642.9010310317608, -182.69522175455927), (587.4110310317608, -64.19522175455927)]</val>
 </points>
 <head-connection>
 <ref refid="c240a8c2-93db-11ef-a724-9fe103139892"/>
@@ -2054,7 +2021,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Enumeration>
 <EnumerationItem id="98eb1021-96d8-11ef-90ec-edd85b488fb6">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 225.5, 644.5)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 345.5, 644.5)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2117,7 +2084,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, -109.95392950161418, 1061.2568399683112)</val>
 </matrix>
 <points>
-<val>[(422.4539295016142, -316.75683996831117), (422.4539295016142, -20.25683996831117)]</val>
+<val>[(542.4539295016142, -316.75683996831117), (542.4539295016142, -75.25683996831117)]</val>
 </points>
 <head-connection>
 <ref refid="98eb1021-96d8-11ef-90ec-edd85b488fb6"/>
@@ -2159,7 +2126,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="fa0c3f4d-96da-11ef-a14d-edd85b488fb6">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 87.5, 1660.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 87.5, 1626.5)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2249,7 +2216,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </DataType>
 <DataTypeItem id="d7dbe44d-96dd-11ef-8fbe-edd85b488fb6">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 1076.5, 282.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 1187.5, 282.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2307,7 +2274,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 810.8769280866725, 1115.1125252125555)</val>
 </matrix>
 <points>
-<val>[(-201.90692808667245, 114.88747478744449), (-353.4369280866725, 224.8874747874445)]</val>
+<val>[(-50.30692808667243, 38.88747478744449), (-217.9869280866725, 148.8874747874445)]</val>
 </points>
 <head-connection>
 <ref refid="bf0974bf-937f-11ef-b8a5-1711e1dd68e8"/>
@@ -2453,7 +2420,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </DataType>
 <DataTypeItem id="cd93abd3-9709-11ef-b838-c9bf0407775f">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 1070.5, 17.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 1181.5, 17.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2491,7 +2458,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 1254.0690161527355, -112.28501339841085)</val>
 </matrix>
 <points>
-<val>[(-38.56901615273546, 394.28501339841085), (-38.56901615273546, 263.28501339841085)]</val>
+<val>[(72.43098384726454, 394.28501339841085), (72.43098384726454, 263.28501339841085)]</val>
 </points>
 <head-connection>
 <ref refid="d7dbe44d-96dd-11ef-8fbe-edd85b488fb6"/>
@@ -2616,7 +2583,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 956.5727755485931, 1132.134334488268)</val>
 </matrix>
 <points>
-<val>[(-179.07277554859309, 97.865665511732), (-179.07277554859309, 207.865665511732)]</val>
+<val>[(86.62722445140696, 21.865665511732004), (220.92722445140691, 94.865665511732), (220.92722445140691, 378.865665511732), (220.92722445140691, 451.865665511732)]</val>
 </points>
 <head-connection>
 <ref refid="bf0974bf-937f-11ef-b8a5-1711e1dd68e8"/>
@@ -2747,10 +2714,11 @@ existing classes or even new classes with specific responsibilities.</val>
 <clientDependency>
 <reflist>
 <ref refid="d8514010-ac18-11ef-aeb7-ed3b97af40b9"/>
+<ref refid="6af0f25c-ca22-11ef-b82a-d31b240a181b"/>
 </reflist>
 </clientDependency>
 <name>
-<val>IStorageUnlockManager</val>
+<val>IUnlockManager</val>
 </name>
 <note>
 <val>- uuid to opened storage
@@ -2778,7 +2746,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="e36ae0da-ac17-11ef-a2b3-ed3b97af40b9">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 990.0, 1382.5)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 556.0, 1626.5)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2813,10 +2781,10 @@ existing classes or even new classes with specific responsibilities.</val>
 <ref refid="d8514010-ac18-11ef-aeb7-ed3b97af40b9"/>
 </subject>
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, -159.4625174399573, 1222.4829062905674)</val>
+<val>(1.0, 0.0, 0.0, 1.0, -154.21251743995725, 1222.4829062905674)</val>
 </matrix>
 <points>
-<val>[(1088.1025174399574, 7.517093709432629), (1276.9625174399573, 160.01709370943263)]</val>
+<val>[(966.1925174399573, -68.48290629056737), (904.9625174399573, 4.517093709432629), (904.9625174399573, 288.51709370943263), (909.4625174399573, 404.01709370943263)]</val>
 </points>
 <head-connection>
 <ref refid="bf0974bf-937f-11ef-b8a5-1711e1dd68e8"/>
@@ -2863,7 +2831,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Class>
 <ClassItem id="4b6940cc-ac1a-11ef-b999-ed3b97af40b9">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 0.0, 1895.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 0.0, 1904.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2904,7 +2872,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 552.0090583921045, 1954.4598112542567)</val>
 </matrix>
 <points>
-<val>[(-289.6890583921045, -169.4598112542567), (-378.2590583921045, -59.45981125425669)]</val>
+<val>[(-280.92905839210454, -202.9598112542567), (-382.7990583921045, -50.45981125425669)]</val>
 </points>
 <head-connection>
 <ref refid="fa0c3f4d-96da-11ef-a14d-edd85b488fb6"/>
@@ -2949,7 +2917,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 1328.1356031213516, 1393.2212077158106)</val>
 </matrix>
 <points>
-<val>[(-1015.6356031213516, 156.77879228418942), (-1015.6356031213516, 266.7787922841894)]</val>
+<val>[(-934.9256031213515, 80.77879228418942), (-992.3756031213516, 233.27879228418942)]</val>
 </points>
 <head-connection>
 <ref refid="a9689781-945a-11ef-a65b-21844220910b"/>
@@ -3021,7 +2989,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </DataType>
 <DataTypeItem id="98e3adb1-ac1b-11ef-8a4a-ed3b97af40b9">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 1379.0, 38.5)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 1490.0, 38.5)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -3186,7 +3154,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 76.1644392789674, 1603.616666567455)</val>
 </matrix>
 <points>
-<val>[(286.5155607210326, 181.383333432545), (375.0855607210326, 291.383333432545)]</val>
+<val>[(277.7555607210326, 147.883333432545), (379.6255607210326, 300.383333432545)]</val>
 </points>
 <head-connection>
 <ref refid="fa0c3f4d-96da-11ef-a14d-edd85b488fb6"/>
@@ -3197,7 +3165,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </DependencyItem>
 <ClassItem id="5d5111fc-9460-11ef-bba8-21844220910b">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 313.5, 1895.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 313.5, 1904.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -3306,7 +3274,7 @@ existing classes or even new classes with specific responsibilities.</val>
 </Interface>
 <InterfaceItem id="0464c929-af11-11ef-9b13-cf9202569821">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 135.0, 1041.0)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 255.0, 986.0)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -3347,7 +3315,7 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>(1.0, 0.0, 0.0, 1.0, 29.099681659149553, 1343.3520695479824)</val>
 </matrix>
 <points>
-<val>[(283.40031834085045, -3.35206954798241), (283.40031834085045, -134.3520695479824)]</val>
+<val>[(403.40031834085045, -79.35206954798241), (403.40031834085045, -189.3520695479824)]</val>
 </points>
 <head-connection>
 <ref refid="a9689781-945a-11ef-a65b-21844220910b"/>
@@ -3505,4 +3473,212 @@ existing classes or even new classes with specific responsibilities.</val>
 <val>+ availableSpace: StateFlow&lt;Integer[0..1]&gt;</val>
 </name>
 </Property>
+<Interface id="ed56560a-ca21-11ef-a923-d31b240a181b">
+<clientDependency>
+<reflist>
+<ref refid="57745412-ca22-11ef-95f7-d31b240a181b"/>
+</reflist>
+</clientDependency>
+<name>
+<val>IStorageAccessorsManager</val>
+</name>
+<ownedOperation>
+<reflist>
+<ref refid="117bb0dd-ca22-11ef-a6f6-d31b240a181b"/>
+</reflist>
+</ownedOperation>
+<package>
+<ref refid="4652e56b-9248-11ef-8256-d5c6949dbfe2"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="ed5765df-ca21-11ef-8c5d-d31b240a181b"/>
+</reflist>
+</presentation>
+<supplierDependency>
+<reflist>
+<ref refid="525b1120-ca22-11ef-9de0-d31b240a181b"/>
+<ref refid="6af0f25c-ca22-11ef-b82a-d31b240a181b"/>
+</reflist>
+</supplierDependency>
+</Interface>
+<InterfaceItem id="ed5765df-ca21-11ef-8c5d-d31b240a181b">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 774.0, 1323.5)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>375.0</val>
+</width>
+<height>
+<val>91.0</val>
+</height>
+<diagram>
+<ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
+</diagram>
+<subject>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
+</subject>
+<folded>
+<val>0</val>
+</folded>
+</InterfaceItem>
+<Operation id="117bb0dd-ca22-11ef-a6f6-d31b240a181b">
+<interface_>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
+</interface_>
+<name>
+<val>getAccessor</val>
+</name>
+<ownedParameter>
+<reflist>
+<ref refid="117e732f-ca22-11ef-9dda-d31b240a181b"/>
+<ref refid="118065f9-ca22-11ef-8048-d31b240a181b"/>
+</reflist>
+</ownedParameter>
+</Operation>
+<Parameter id="117e732f-ca22-11ef-9dda-d31b240a181b">
+<direction>
+<val>return</val>
+</direction>
+<ownerFormalParam>
+<ref refid="117bb0dd-ca22-11ef-a6f6-d31b240a181b"/>
+</ownerFormalParam>
+<typeValue>
+<val>IStorageAccessor</val>
+</typeValue>
+</Parameter>
+<Parameter id="118065f9-ca22-11ef-8048-d31b240a181b">
+<direction>
+<val>in</val>
+</direction>
+<name>
+<val>storage</val>
+</name>
+<ownerFormalParam>
+<ref refid="117bb0dd-ca22-11ef-a6f6-d31b240a181b"/>
+</ownerFormalParam>
+<typeValue>
+<val>IStorage</val>
+</typeValue>
+</Parameter>
+<DependencyItem id="37eb93f3-ca22-11ef-bbbe-d31b240a181b">
+<diagram>
+<ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
+</diagram>
+<horizontal>
+<val>0</val>
+</horizontal>
+<orthogonal>
+<val>0</val>
+</orthogonal>
+<subject>
+<ref refid="6af0f25c-ca22-11ef-b82a-d31b240a181b"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1121.3345834473034, 1106.9626146481362)</val>
+</matrix>
+<points>
+<val>[(-188.20458344730343, 307.5373853518638), (-321.7345834473034, 519.5373853518638)]</val>
+</points>
+<head-connection>
+<ref refid="ed5765df-ca21-11ef-8c5d-d31b240a181b"/>
+</head-connection>
+<tail-connection>
+<ref refid="e36ae0da-ac17-11ef-a2b3-ed3b97af40b9"/>
+</tail-connection>
+</DependencyItem>
+<Usage id="525b1120-ca22-11ef-9de0-d31b240a181b">
+<client>
+<ref refid="c9b08bac-948c-11ef-a043-9b5d5b59175b"/>
+</client>
+<presentation>
+<reflist>
+<ref refid="5dcc7985-ca22-11ef-8588-d31b240a181b"/>
+</reflist>
+</presentation>
+<supplier>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
+</supplier>
+</Usage>
+<DependencyItem id="57152224-ca22-11ef-b91e-d31b240a181b">
+<diagram>
+<ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
+</diagram>
+<horizontal>
+<val>0</val>
+</horizontal>
+<orthogonal>
+<val>0</val>
+</orthogonal>
+<subject>
+<ref refid="57745412-ca22-11ef-95f7-d31b240a181b"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1222.2798748487307, 1189.6352612530745)</val>
+</matrix>
+<points>
+<val>[(-313.3498748487308, -35.63526125307453), (-271.8198748487307, 133.86473874692547)]</val>
+</points>
+<head-connection>
+<ref refid="bf0974bf-937f-11ef-b8a5-1711e1dd68e8"/>
+</head-connection>
+<tail-connection>
+<ref refid="ed5765df-ca21-11ef-8c5d-d31b240a181b"/>
+</tail-connection>
+</DependencyItem>
+<Usage id="57745412-ca22-11ef-95f7-d31b240a181b">
+<client>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
+</client>
+<presentation>
+<reflist>
+<ref refid="57152224-ca22-11ef-b91e-d31b240a181b"/>
+</reflist>
+</presentation>
+<supplier>
+<ref refid="bf08f1ce-937f-11ef-815c-1711e1dd68e8"/>
+</supplier>
+</Usage>
+<DependencyItem id="5dcc7985-ca22-11ef-8588-d31b240a181b">
+<diagram>
+<ref refid="7a8a9c2d-9248-11ef-bfb6-d5c6949dbfe2"/>
+</diagram>
+<horizontal>
+<val>0</val>
+</horizontal>
+<orthogonal>
+<val>0</val>
+</orthogonal>
+<subject>
+<ref refid="525b1120-ca22-11ef-9de0-d31b240a181b"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1131.3345834473034, 1116.9626146481362)</val>
+</matrix>
+<points>
+<val>[(-139.34458344730342, 297.5373853518638), (-24.73458344730352, 467.0373853518638)]</val>
+</points>
+<head-connection>
+<ref refid="ed5765df-ca21-11ef-8c5d-d31b240a181b"/>
+</head-connection>
+<tail-connection>
+<ref refid="c9b11178-948c-11ef-9609-9b5d5b59175b"/>
+</tail-connection>
+</DependencyItem>
+<Usage id="6af0f25c-ca22-11ef-b82a-d31b240a181b">
+<client>
+<ref refid="e36a5a87-ac17-11ef-8d54-ed3b97af40b9"/>
+</client>
+<presentation>
+<reflist>
+<ref refid="37eb93f3-ca22-11ef-bbbe-d31b240a181b"/>
+</reflist>
+</presentation>
+<supplier>
+<ref refid="ed56560a-ca21-11ef-a923-d31b240a181b"/>
+</supplier>
+</Usage>
 </gaphor>

@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -59,7 +58,6 @@ class LocalStorageAccessor(
     init {
         // запускам сканирование хранилища
         CoroutineScope(ioDispatcher).launch {
-            Timber.d("Local storage path: $_filesystemBasePath")
             scanSizeAndNumOfFiles()
         }
     }
