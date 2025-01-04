@@ -1,7 +1,7 @@
 package com.github.nullptroma.wallenc.data.vaults.local
 
 import android.content.Context
-import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.enums.VaultType
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IVault
@@ -44,7 +44,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
         }
     }
 
-    private fun readStorages() {
+    private suspend fun readStorages() {
         val path = _path.value
         if (path == null || !_isAvailable.value)
             return
@@ -53,12 +53,12 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
         if (dirs != null) {
             _storages.value = dirs.map {
                 val uuid = UUID.fromString(it.name)
-                LocalStorage(uuid, false, it.path, ioDispatcher)
+                return@map LocalStorage(uuid, it.path, ioDispatcher).apply { init() }
             }
         }
     }
 
-    override suspend fun createStorage(): IStorage = withContext(ioDispatcher) {
+    override suspend fun createStorage(): LocalStorage = withContext(ioDispatcher) {
         val path = _path.value
         if (path == null || !_isAvailable.value)
             throw Exception("Not available")
@@ -66,7 +66,8 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
         val uuid = UUID.randomUUID()
         val next = Path(path.path, uuid.toString())
         next.createDirectory()
-        val newStorage = LocalStorage(uuid, false, next.pathString, ioDispatcher)
+        val newStorage = LocalStorage(uuid, next.pathString, ioDispatcher)
+        newStorage.init()
         _storages.value = _storages.value.toMutableList().apply {
             add(newStorage)
         }
@@ -74,15 +75,9 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     }
 
     override suspend fun createStorage(
-        key: EncryptKey
-    ): IStorage = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
-    }
+        enc: StorageEncryptionInfo
+    ): LocalStorage = withContext(ioDispatcher) {
 
-    override suspend fun createStorage(
-        key: EncryptKey,
-        uuid: UUID
-    ): IStorage = withContext(ioDispatcher) {
         TODO("Not yet implemented")
     }
 

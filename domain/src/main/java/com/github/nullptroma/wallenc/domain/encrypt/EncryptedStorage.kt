@@ -1,6 +1,7 @@
 package com.github.nullptroma.wallenc.domain.encrypt
 
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.interfaces.ILogger
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
@@ -13,7 +14,6 @@ class EncryptedStorage(
     key: EncryptKey,
     logger: ILogger,
     ioDispatcher: CoroutineDispatcher,
-    override val isEncrypted: Boolean
 ) : IStorage {
     override val size: StateFlow<Long?>
         get() = TODO("Not yet implemented")
@@ -24,6 +24,8 @@ class EncryptedStorage(
     override val name: StateFlow<String>
         get() = TODO("Not yet implemented")
     override val isAvailable: StateFlow<Boolean>
+        get() = TODO("Not yet implemented")
+    override val encInfo: StateFlow<StorageEncryptionInfo>
         get() = TODO("Not yet implemented")
     override val accessor: IStorageAccessor =
         EncryptedStorageAccessor(source.accessor, key, logger, ioDispatcher)

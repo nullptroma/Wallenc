@@ -31,7 +31,9 @@ interface IStorageAccessor {
      * @return Поток директорий
      */
     fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>>
-
+    suspend fun getFileInfo(path: String): IFile
+    suspend fun getDirInfo(path: String): IDirectory
+    suspend fun setHidden(path: String, hidden: Boolean)
     suspend fun touchFile(path: String)
     suspend fun touchDir(path: String)
     suspend fun delete(path: String)

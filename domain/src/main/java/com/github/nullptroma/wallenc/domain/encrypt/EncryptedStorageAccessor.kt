@@ -191,6 +191,22 @@ class EncryptedStorageAccessor(
         return flow
     }
 
+    override suspend fun getFileInfo(path: String): IFile {
+        val file = source.getFileInfo(encryptPath(path))
+        val meta = decryptMeta(file.metaInfo)
+        return CommonFile(meta)
+    }
+
+    override suspend fun getDirInfo(path: String): IDirectory {
+        val dir = source.getDirInfo(encryptPath(path))
+        val meta = decryptMeta(dir.metaInfo)
+        return CommonDirectory(meta, dir.elementsCount)
+    }
+
+    override suspend fun setHidden(path: String, hidden: Boolean) {
+        source.setHidden(encryptPath(path), hidden)
+    }
+
     override suspend fun touchFile(path: String) {
         source.touchFile(encryptPath(path))
     }
