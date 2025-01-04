@@ -9,9 +9,9 @@ class StorageFileManagementUseCase {
     private var _storage: IStorage? = null
 
     fun setStorage(storage: IStorageInfo) {
-        if(storage !is IStorage)
-            throw Exception("Cannot manage storage on StorageInfo")
-        _storage = storage
+        //if(storage !is IStorage)
+         //   throw Exception("Can not manage storage on StorageInfo")
+        _storage = storage as IStorage
     }
 
     suspend fun getAllFiles(): List<IFile> {
