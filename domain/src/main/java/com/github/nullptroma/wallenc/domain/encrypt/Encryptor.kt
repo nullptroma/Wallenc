@@ -29,7 +29,7 @@ class Encryptor(private var _secretKey: SecretKey?) : DisposableHandle {
         return String(decryptedBytes, Charsets.UTF_8)
     }
 
-    private fun encryptBytes(bytes: ByteArray): ByteArray {
+    fun encryptBytes(bytes: ByteArray): ByteArray {
         val secretKey = _secretKey ?: throw Exception("Object was disposed")
         val cipher = Cipher.getInstance(AES_SETTINGS)
         val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
@@ -38,7 +38,7 @@ class Encryptor(private var _secretKey: SecretKey?) : DisposableHandle {
         return encryptedBytes
     }
 
-    private fun decryptBytes(bytes: ByteArray): ByteArray {
+    fun decryptBytes(bytes: ByteArray): ByteArray {
         val secretKey = _secretKey ?: throw Exception("Object was disposed")
         val cipher = Cipher.getInstance(AES_SETTINGS)
         val iv = IvParameterSpec(bytes.take(IV_LEN).toByteArray())
