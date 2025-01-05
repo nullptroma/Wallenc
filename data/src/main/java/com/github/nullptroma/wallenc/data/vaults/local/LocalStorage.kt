@@ -3,6 +3,7 @@ package com.github.nullptroma.wallenc.data.vaults.local
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
+import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ class LocalStorage(
         get() = accessor.numberOfFiles
     override val isAvailable: StateFlow<Boolean>
         get() = accessor.isAvailable
-    override val accessor = LocalStorageAccessor(absolutePath, ioDispatcher)
+    private val _accessor = LocalStorageAccessor(absolutePath, ioDispatcher)
+    override val accessor: IStorageAccessor = _accessor
 
     private val _encInfo = MutableStateFlow<StorageEncryptionInfo?>(null)
     override val encInfo: StateFlow<StorageEncryptionInfo?>
@@ -31,14 +33,12 @@ class LocalStorage(
     private val encInfoFileName: String = "$uuid$ENC_INFO_FILE_POSTFIX"
 
     suspend fun init() {
-        accessor.init()
+        _accessor.init()
         readEncInfo()
     }
 
     private suspend fun readEncInfo() {
-        accessor.touchFile(encInfoFileName)
-        accessor.setHidden(encInfoFileName, true)
-        val reader = accessor.openRead(encInfoFileName)
+        val reader = _accessor.openReadSystemFile(encInfoFileName)
         var enc: StorageEncryptionInfo? = null
         try {
             enc = _jackson.readValue(reader, StorageEncryptionInfo::class.java)
@@ -51,23 +51,13 @@ class LocalStorage(
                 isEncrypted = false,
                 encryptedTestData = null
             )
-            val writer = accessor.openWrite(encInfoFileName)
-            try {
-                _jackson.writeValue(writer, enc)
-            }
-            catch (e: Exception) {
-                TODO("Это никогда не должно произойти")
-            }
-            writer.close()
+            setEncInfo(enc)
         }
         _encInfo.value = enc
     }
 
     suspend fun setEncInfo(enc: StorageEncryptionInfo) {
-        accessor.touchFile(encInfoFileName)
-        accessor.setHidden(encInfoFileName, true)
-
-        val writer = accessor.openWrite(encInfoFileName)
+        val writer = _accessor.openWriteSystemFile(encInfoFileName)
         try {
             _jackson.writeValue(writer, enc)
         }

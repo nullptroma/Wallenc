@@ -47,9 +47,6 @@ android {
 }
 
 dependencies {
-    // Timber
-    implementation(libs.timber)
-
     implementation(libs.navigation)
     implementation(libs.navigation.hilt.compose)
 

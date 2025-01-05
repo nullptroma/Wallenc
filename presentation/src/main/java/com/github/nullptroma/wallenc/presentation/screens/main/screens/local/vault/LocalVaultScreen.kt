@@ -1,5 +1,6 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,19 +40,21 @@ fun LocalVaultScreen(modifier: Modifier = Modifier,
     }) { innerPadding ->
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             items(uiState.storagesList) {
-                Card(modifier = Modifier.pointerInput(Unit) {
+                Card(modifier = Modifier.clickable { }.pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = { _ -> viewModel.printAllFilesToLog(it) }
+                        onTap = { _ -> viewModel.printStorageInfoToLog(it) }
                     )
                 }) {
                     val available by it.isAvailable.collectAsStateWithLifecycle()
                     val numOfFiles by it.numberOfFiles.collectAsStateWithLifecycle()
                     val size by it.size.collectAsStateWithLifecycle()
+                    val enc by it.encInfo.collectAsStateWithLifecycle()
                     Column {
                         Text(it.uuid.toString())
                         Text("IsAvailable: $available")
                         Text("Files: $numOfFiles")
                         Text("Size: $size")
+                        Text("Enc: $enc")
                     }
                 }
             }

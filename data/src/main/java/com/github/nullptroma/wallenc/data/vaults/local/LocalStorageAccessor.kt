@@ -85,9 +85,11 @@ class LocalStorageAccessor(
 
         val children = dir.listFiles()
         if (children != null) {
+
             // вызвать коллбек для каждого элемента директории
             for (child in children) {
-                callback(child)
+                if(child.name != SYSTEM_HIDDEN_DIRNAME)
+                    callback(child)
             }
 
             if (useCallbackForSelf)
@@ -96,7 +98,7 @@ class LocalStorageAccessor(
             if (maxDepth != 0) {
                 val nextMaxDepth = if (maxDepth > 0) maxDepth - 1 else maxDepth
                 for (child in children) {
-                    if (child.isDirectory) {
+                    if (child.isDirectory && child.name != SYSTEM_HIDDEN_DIRNAME) {
                         scanFileSystem(child, nextMaxDepth, callback, false)
                     }
                 }
@@ -488,7 +490,33 @@ class LocalStorageAccessor(
         writeMeta(pair.metaFile, newMeta)
     }
 
+    suspend fun openReadSystemFile(name: String): InputStream = withContext(ioDispatcher) {
+        val dirPath = _filesystemBasePath.resolve(SYSTEM_HIDDEN_DIRNAME)
+        val path = dirPath.resolve(name)
+        val file = path.toFile()
+        if(!file.exists()) {
+            Files.createDirectories(dirPath)
+            file.createNewFile()
+        }
+
+        return@withContext file.inputStream()
+    }
+
+    suspend fun openWriteSystemFile(name: String): OutputStream = withContext(ioDispatcher) {
+        val dirPath = _filesystemBasePath.resolve(SYSTEM_HIDDEN_DIRNAME)
+        val path = dirPath.resolve(name)
+        val file = path.toFile()
+        if(!file.exists()) {
+            Files.createDirectories(dirPath)
+            file.createNewFile()
+        }
+
+        return@withContext file.outputStream()
+    }
+
     companion object {
+        // Файлы, которые можно использовать для чтения и записи, но не отображаются в хранилище
+        private const val SYSTEM_HIDDEN_DIRNAME = "wallenc-local-storage-meta-dir"
         private const val META_INFO_POSTFIX = ".wallenc-meta"
         private const val DATA_PAGE_LENGTH = 10
         private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }

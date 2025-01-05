@@ -3,13 +3,14 @@ package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.va
 import androidx.lifecycle.viewModelScope
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
+import com.github.nullptroma.wallenc.domain.interfaces.ILogger
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
+import com.github.nullptroma.wallenc.presentation.extensions.toPrintable
 import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
@@ -17,6 +18,7 @@ import kotlin.system.measureTimeMillis
 class LocalVaultViewModel @Inject constructor(
     private val _manageLocalVaultUseCase: ManageLocalVaultUseCase,
     private val _storageFileManagementUseCase: StorageFileManagementUseCase,
+    private val logger: ILogger
 ) :
     ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
     init {
@@ -30,7 +32,7 @@ class LocalVaultViewModel @Inject constructor(
         }
     }
 
-    fun printAllFilesToLog(storage: IStorageInfo) {
+    fun printStorageInfoToLog(storage: IStorageInfo) {
         _storageFileManagementUseCase.setStorage(storage)
         viewModelScope.launch {
             val files: List<IFile>
@@ -40,14 +42,13 @@ class LocalVaultViewModel @Inject constructor(
                 dirs = _storageFileManagementUseCase.getAllDirs()
             }
             for (file in files) {
-                Timber.tag("Files")
-                Timber.d(file.metaInfo.toString())
+                logger.debug("Files", file.metaInfo.toString())
             }
             for (dir in dirs) {
-                Timber.tag("Dirs")
-                Timber.d(dir.metaInfo.toString())
+                logger.debug("Dirs", dir.metaInfo.toString())
             }
-            Timber.d("Time: $time ms")
+            logger.debug("Time", "Time: $time ms")
+            logger.debug("Storage", storage.toPrintable())
         }
     }
 

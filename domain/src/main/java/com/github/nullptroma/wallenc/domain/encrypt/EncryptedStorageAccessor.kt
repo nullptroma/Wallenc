@@ -52,7 +52,7 @@ class EncryptedStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPackage<List<IDirectory>>>()
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
-    private val _secretKey = SecretKeySpec(key.to32Bytes(), "AES")
+    private var _secretKey: SecretKeySpec? = SecretKeySpec(key.to32Bytes(), "AES")
 
     init {
         collectSourceState()
@@ -123,6 +123,8 @@ class EncryptedStorageAccessor(
 
     @OptIn(ExperimentalEncodingApi::class)
     private fun encryptString(str: String): String {
+        if(_secretKey == null)
+            throw Exception("Object was disposed")
         val cipher = Cipher.getInstance(AES_SETTINGS)
         val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
         cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv)
@@ -133,6 +135,8 @@ class EncryptedStorageAccessor(
 
     @OptIn(ExperimentalEncodingApi::class)
     private fun decryptString(str: String): String {
+        if(_secretKey == null)
+            throw Exception("Object was disposed")
         val cipher = Cipher.getInstance(AES_SETTINGS)
         val bytesToDecrypt = Base64.Default.decode(str.replace(".", "/"))
         val iv = IvParameterSpec(bytesToDecrypt.take(IV_LEN).toByteArray())
@@ -226,6 +230,8 @@ class EncryptedStorageAccessor(
     }
 
     override suspend fun openWrite(path: String): OutputStream {
+        if(_secretKey == null)
+            throw Exception("Object was disposed")
         val stream = source.openWrite(encryptPath(path))
         val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
         stream.write(iv.iv) // Запись инициализационного вектора сырой файл
@@ -235,6 +241,8 @@ class EncryptedStorageAccessor(
     }
 
     override suspend fun openRead(path: String): InputStream {
+        if(_secretKey == null)
+            throw Exception("Object was disposed")
         val stream = source.openRead(encryptPath(path))
         val ivBytes = ByteArray(IV_LEN) // Буфер для 16 байт IV
         val bytesRead = stream.read(ivBytes) // Чтение IV вектора
@@ -253,7 +261,7 @@ class EncryptedStorageAccessor(
 
     override fun dispose() {
         _job.cancel()
-        // TODO сделать удаление ключа, чтобы нельзя было вызвать ни один из методов
+        _secretKey = null
     }
 
 
