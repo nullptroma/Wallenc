@@ -5,7 +5,6 @@ import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
-import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.ILogger
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
-import javax.crypto.spec.SecretKeySpec
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
 
@@ -46,7 +44,7 @@ class EncryptedStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPackage<List<IDirectory>>>()
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
-    private val _encryptor = Encryptor(SecretKeySpec(key.to32Bytes(), "AES"))
+    private val _encryptor = Encryptor(key.toAesKey())
 
     init {
         collectSourceState()
@@ -216,15 +214,5 @@ class EncryptedStorageAccessor(
     override fun dispose() {
         _job.cancel()
         _encryptor.dispose()
-    }
-
-
-    companion object {
-        private const val IV_LEN = 16
-        private const val AES_SETTINGS = "AES/CBC/PKCS5Padding"
-
-        fun generateEncryptionInfo(key: EncryptKey): StorageEncryptionInfo {
-            TODO()
-        }
     }
 }

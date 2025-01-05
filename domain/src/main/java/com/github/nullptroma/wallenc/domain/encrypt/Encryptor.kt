@@ -1,5 +1,7 @@
 package com.github.nullptroma.wallenc.domain.encrypt
 
+import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import kotlinx.coroutines.DisposableHandle
 import java.io.InputStream
 import java.io.OutputStream
@@ -74,8 +76,33 @@ class Encryptor(private var _secretKey: SecretKey?) : DisposableHandle {
 
     companion object {
         private const val IV_LEN = 16
+        private const val TEST_DATA_LEN = 512
         private const val AES_SETTINGS = "AES/CBC/PKCS5Padding"
 
-        
+        @OptIn(ExperimentalEncodingApi::class)
+        fun generateEncryptionInfo(key: EncryptKey) : StorageEncryptionInfo {
+            val encryptor = Encryptor(key.toAesKey())
+            val testData = ByteArray(TEST_DATA_LEN)
+            val encryptedData = encryptor.encryptBytes(testData)
+            return StorageEncryptionInfo(
+                isEncrypted = true,
+                encryptedTestData = Base64.Default.encode(encryptedData)
+            )
+        }
+
+        @OptIn(ExperimentalEncodingApi::class)
+        fun checkKey(key: EncryptKey, encInfo: StorageEncryptionInfo): Boolean {
+            if(encInfo.encryptedTestData == null)
+                return false
+            val encryptor = Encryptor(key.toAesKey())
+            try {
+                val encData = Base64.Default.decode(encInfo.encryptedTestData)
+                val testData = encryptor.decryptBytes(encData)
+                return testData.all { it == 0.toByte() } && testData.size == TEST_DATA_LEN
+            }
+            catch (e: Exception) {
+                return false
+            }
+        }
     }
 }
