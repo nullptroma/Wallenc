@@ -33,7 +33,7 @@ import kotlin.random.Random
 
 class EncryptedStorageAccessor(
     private val source: IStorageAccessor,
-    private val key: EncryptKey,
+    key: EncryptKey,
     private val logger: ILogger,
     ioDispatcher: CoroutineDispatcher
 ) : IStorageAccessor {
@@ -67,6 +67,7 @@ class EncryptedStorageAccessor(
             }
 
             launch {
+
                 source.dirsUpdates.collect {
                     val dirs = it.data.map(::decryptEntity)
                     _dirsUpdates.emit(DataPackage(
@@ -117,7 +118,7 @@ class EncryptedStorageAccessor(
 
     @OptIn(ExperimentalEncodingApi::class)
     private fun encryptString(str: String): String {
-        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        val cipher = Cipher.getInstance(AES_SETTINGS)
         val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
         cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv)
         val bytesToEncrypt = iv.iv + str.toByteArray(Charsets.UTF_8)
@@ -127,7 +128,7 @@ class EncryptedStorageAccessor(
 
     @OptIn(ExperimentalEncodingApi::class)
     private fun decryptString(str: String): String {
-        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        val cipher = Cipher.getInstance(AES_SETTINGS)
         val bytesToDecrypt = Base64.Default.decode(str.replace(".", "/"))
         val iv = IvParameterSpec(bytesToDecrypt.take(IV_LEN).toByteArray())
         cipher.init(Cipher.DECRYPT_MODE, _secretKey, iv)
@@ -223,7 +224,7 @@ class EncryptedStorageAccessor(
         val stream = source.openWrite(encryptPath(path))
         val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
         stream.write(iv.iv) // Запись инициализационного вектора сырой файл
-        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        val cipher = Cipher.getInstance(AES_SETTINGS)
         cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv) // инициализация шифратора
         return CipherOutputStream(stream, cipher)
     }
@@ -236,7 +237,7 @@ class EncryptedStorageAccessor(
             throw Exception("TODO iv не прочитан")
         val iv = IvParameterSpec(ivBytes)
 
-        val cipher = Cipher.getInstance(AES_FOR_STRINGS)
+        val cipher = Cipher.getInstance(AES_SETTINGS)
         cipher.init(Cipher.DECRYPT_MODE, _secretKey, iv)
         return CipherInputStream(stream, cipher)
     }
@@ -248,6 +249,6 @@ class EncryptedStorageAccessor(
 
     companion object {
         private const val IV_LEN = 16
-        private const val AES_FOR_STRINGS = "AES/CBC/PKCS5Padding"
+        private const val AES_SETTINGS = "AES/CBC/PKCS5Padding"
     }
 }
