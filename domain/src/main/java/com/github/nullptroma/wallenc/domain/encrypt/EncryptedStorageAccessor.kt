@@ -5,6 +5,7 @@ import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.ILogger
@@ -22,16 +23,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
-import javax.crypto.Cipher
-import javax.crypto.CipherInputStream
-import javax.crypto.CipherOutputStream
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
-import kotlin.random.Random
 
 class EncryptedStorageAccessor(
     private val source: IStorageAccessor,
@@ -52,7 +46,7 @@ class EncryptedStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPackage<List<IDirectory>>>()
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
-    private var _secretKey: SecretKeySpec? = SecretKeySpec(key.to32Bytes(), "AES")
+    private val _encryptor = Encryptor(SecretKeySpec(key.to32Bytes(), "AES"))
 
     init {
         collectSourceState()
@@ -121,35 +115,11 @@ class EncryptedStorageAccessor(
         )
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun encryptString(str: String): String {
-        if(_secretKey == null)
-            throw Exception("Object was disposed")
-        val cipher = Cipher.getInstance(AES_SETTINGS)
-        val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
-        cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv)
-        val bytesToEncrypt = iv.iv + str.toByteArray(Charsets.UTF_8)
-        val encryptedBytes = cipher.doFinal(bytesToEncrypt)
-        return Base64.Default.encode(encryptedBytes).replace("/", ".")
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun decryptString(str: String): String {
-        if(_secretKey == null)
-            throw Exception("Object was disposed")
-        val cipher = Cipher.getInstance(AES_SETTINGS)
-        val bytesToDecrypt = Base64.Default.decode(str.replace(".", "/"))
-        val iv = IvParameterSpec(bytesToDecrypt.take(IV_LEN).toByteArray())
-        cipher.init(Cipher.DECRYPT_MODE, _secretKey, iv)
-        val decryptedBytes = cipher.doFinal(bytesToDecrypt.drop(IV_LEN).toByteArray())
-        return String(decryptedBytes, Charsets.UTF_8)
-    }
-
     private fun encryptPath(pathStr: String): String {
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(encryptString(segment.pathString))
+            segments.add(_encryptor.encryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -158,7 +128,7 @@ class EncryptedStorageAccessor(
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(decryptString(segment.pathString))
+            segments.add(_encryptor.decryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -230,29 +200,13 @@ class EncryptedStorageAccessor(
     }
 
     override suspend fun openWrite(path: String): OutputStream {
-        if(_secretKey == null)
-            throw Exception("Object was disposed")
         val stream = source.openWrite(encryptPath(path))
-        val iv = IvParameterSpec(Random.nextBytes(IV_LEN))
-        stream.write(iv.iv) // Запись инициализационного вектора сырой файл
-        val cipher = Cipher.getInstance(AES_SETTINGS)
-        cipher.init(Cipher.ENCRYPT_MODE, _secretKey, iv) // инициализация шифратора
-        return CipherOutputStream(stream, cipher)
+        return _encryptor.encryptStream(stream)
     }
 
     override suspend fun openRead(path: String): InputStream {
-        if(_secretKey == null)
-            throw Exception("Object was disposed")
         val stream = source.openRead(encryptPath(path))
-        val ivBytes = ByteArray(IV_LEN) // Буфер для 16 байт IV
-        val bytesRead = stream.read(ivBytes) // Чтение IV вектора
-        if(bytesRead != IV_LEN)
-            throw Exception("TODO iv не прочитан")
-        val iv = IvParameterSpec(ivBytes)
-
-        val cipher = Cipher.getInstance(AES_SETTINGS)
-        cipher.init(Cipher.DECRYPT_MODE, _secretKey, iv)
-        return CipherInputStream(stream, cipher)
+        return _encryptor.decryptStream(stream)
     }
 
     override suspend fun moveToTrash(path: String) {
@@ -261,12 +215,16 @@ class EncryptedStorageAccessor(
 
     override fun dispose() {
         _job.cancel()
-        _secretKey = null
+        _encryptor.dispose()
     }
 
 
     companion object {
         private const val IV_LEN = 16
         private const val AES_SETTINGS = "AES/CBC/PKCS5Padding"
+
+        fun generateEncryptionInfo(key: EncryptKey): StorageEncryptionInfo {
+            TODO()
+        }
     }
 }
