@@ -22,7 +22,13 @@ class UnlockManager(dao: StorageKeyDao, ioDispatcher: CoroutineDispatcher): IUnl
         TODO("Not yet implemented")
     }
 
-    override fun close(storage: IStorage) {
-        TODO("Not yet implemented")
+    override fun close(uuid: UUID) {
+        val enc = _openedStorages.value[uuid]
+        if(enc == null)
+            return
+        _openedStorages.value = _openedStorages.value.toMutableMap().apply {
+            remove(uuid)
+        }
+        enc.dispose()
     }
 }

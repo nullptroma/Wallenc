@@ -11,5 +11,5 @@ interface IUnlockManager {
     val openedStorages: StateFlow<Map<UUID, IStorage>>
 
     fun open(storage: IStorage, key: EncryptKey)
-    fun close(storage: IStorage)
+    fun close(storage: UUID)
 }

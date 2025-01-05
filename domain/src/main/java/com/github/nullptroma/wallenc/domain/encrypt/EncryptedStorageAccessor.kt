@@ -12,6 +12,8 @@ import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -36,7 +38,10 @@ class EncryptedStorageAccessor(
     key: EncryptKey,
     private val logger: ILogger,
     ioDispatcher: CoroutineDispatcher
-) : IStorageAccessor {
+) : IStorageAccessor, DisposableHandle {
+    private val _job = Job()
+    private val _scope = CoroutineScope(ioDispatcher + _job)
+
     override val size: StateFlow<Long?> = source.size
     override val numberOfFiles: StateFlow<Int?> = source.numberOfFiles
     override val isAvailable: StateFlow<Boolean> = source.isAvailable
@@ -50,11 +55,11 @@ class EncryptedStorageAccessor(
     private val _secretKey = SecretKeySpec(key.to32Bytes(), "AES")
 
     init {
-        collectSourceState(CoroutineScope(ioDispatcher))
+        collectSourceState()
     }
 
-    private fun collectSourceState(coroutineScope: CoroutineScope) {
-        coroutineScope.launch {
+    private fun collectSourceState() {
+        _scope.launch {
             launch {
                 source.filesUpdates.collect {
                     val files = it.data.map(::decryptEntity)
@@ -244,6 +249,11 @@ class EncryptedStorageAccessor(
 
     override suspend fun moveToTrash(path: String) {
         source.moveToTrash(encryptPath(path))
+    }
+
+    override fun dispose() {
+        _job.cancel()
+        // TODO сделать удаление ключа, чтобы нельзя было вызвать ни один из методов
     }
 
 
