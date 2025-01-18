@@ -2,14 +2,14 @@ package com.github.nullptroma.wallenc.data.db.app
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.github.nullptroma.wallenc.data.db.app.dao.StorageKeyDao
-import com.github.nullptroma.wallenc.data.db.app.model.DbStorageKey
+import com.github.nullptroma.wallenc.data.db.app.dao.StorageKeyMapDao
+import com.github.nullptroma.wallenc.data.db.app.model.DbStorageKeyMap
 
 interface IAppDb {
-    val storageKeyDao: StorageKeyDao
+    val storageKeyMapDao: StorageKeyMapDao
 }
 
-@Database(entities = [DbStorageKey::class], version = 1, exportSchema = false)
+@Database(entities = [DbStorageKeyMap::class], version = 2, exportSchema = false)
 abstract class AppDb : IAppDb, RoomDatabase() {
-    abstract override val storageKeyDao: StorageKeyDao
+    abstract override val storageKeyMapDao: StorageKeyMapDao
 }

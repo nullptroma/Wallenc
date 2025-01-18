@@ -8,8 +8,8 @@ interface IUnlockManager {
     /**
      * Хранилища, для которых есть ключ шифрования
      */
-    val openedStorages: StateFlow<Map<UUID, IStorage>>
+    val openedStorages: StateFlow<Map<UUID, IStorage>?>
 
-    fun open(storage: IStorage, key: EncryptKey)
-    fun close(storage: UUID)
+    suspend fun open(storage: IStorage, key: EncryptKey)
+    suspend fun close(storage: IStorage)
 }

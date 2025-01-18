@@ -1,7 +1,9 @@
 package com.github.nullptroma.wallenc.app.di.modules.domain
 
+import com.github.nullptroma.wallenc.data.vaults.UnlockManager
+import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
-import com.github.nullptroma.wallenc.domain.usecases.GetAllRawStoragesUseCase
+import com.github.nullptroma.wallenc.domain.usecases.GetOpenedStoragesUseCase
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import dagger.Module
@@ -15,14 +17,14 @@ import javax.inject.Singleton
 class UseCasesModule {
     @Provides
     @Singleton
-    fun provideGetAllRawStoragesUseCase(vaultsManager: IVaultsManager): GetAllRawStoragesUseCase {
-        return GetAllRawStoragesUseCase(vaultsManager)
+    fun provideGetOpenedStoragesUseCase(unlockManager: IUnlockManager): GetOpenedStoragesUseCase {
+        return GetOpenedStoragesUseCase(unlockManager)
     }
 
     @Provides
     @Singleton
-    fun provideManageLocalVaultUseCase(vaultsManager: IVaultsManager): ManageLocalVaultUseCase {
-        return ManageLocalVaultUseCase(vaultsManager)
+    fun provideManageLocalVaultUseCase(vaultsManager: IVaultsManager, unlockManager: IUnlockManager): ManageLocalVaultUseCase {
+        return ManageLocalVaultUseCase(vaultsManager, unlockManager)
     }
 
     @Provides

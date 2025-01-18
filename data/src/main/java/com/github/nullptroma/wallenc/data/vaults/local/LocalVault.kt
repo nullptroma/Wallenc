@@ -77,8 +77,9 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     override suspend fun createStorage(
         enc: StorageEncryptionInfo
     ): LocalStorage = withContext(ioDispatcher) {
-
-        TODO("Not yet implemented")
+        val storage = createStorage()
+        storage.setEncInfo(enc)
+        return@withContext storage
     }
 
     override suspend fun remove(storage: IStorage) = withContext(ioDispatcher) {

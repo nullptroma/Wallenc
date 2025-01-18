@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.1"
+agp = "8.8.0"
 jacksonModuleKotlin = "2.18.2"
 kotlin = "2.0.10"
 coreKtx = "1.15.0"
@@ -10,9 +10,9 @@ kotlinReflect = "2.0.21"
 kotlinxCoroutinesCore = "1.9.0"
 kotlinxSerializationJson = "1.7.3"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.10.01"
-navigation = "2.8.3"
+activityCompose = "1.10.0"
+composeBom = "2025.01.00"
+navigation = "2.8.5"
 hiltNavigation = "1.2.0"
 timber = "5.0.1"
 yandexAuthSdk = "3.1.2"
@@ -68,7 +68,6 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 
 
 [plugins]

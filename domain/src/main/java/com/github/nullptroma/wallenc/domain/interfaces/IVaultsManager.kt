@@ -6,5 +6,6 @@ interface IVaultsManager {
     val localVault: IVault
     val remoteVaults: StateFlow<List<IVault>>
 
+    val allStorages: StateFlow<List<IStorage>>
     fun addYandexVault(email: String, token: String)
 }

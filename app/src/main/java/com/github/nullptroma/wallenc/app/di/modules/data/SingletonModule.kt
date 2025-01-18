@@ -2,7 +2,8 @@ package com.github.nullptroma.wallenc.app.di.modules.data
 
 import android.content.Context
 import com.github.nullptroma.wallenc.app.di.modules.app.IoDispatcher
-import com.github.nullptroma.wallenc.data.db.app.dao.StorageKeyDao
+import com.github.nullptroma.wallenc.data.db.app.dao.StorageKeyMapDao
+import com.github.nullptroma.wallenc.data.db.app.repository.StorageKeyMapRepository
 import com.github.nullptroma.wallenc.data.vaults.UnlockManager
 import com.github.nullptroma.wallenc.data.vaults.VaultsManager
 import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
@@ -27,11 +28,19 @@ class SingletonModule {
 
     @Provides
     @Singleton
+    fun provideStorageKeyMapRepository(dao: StorageKeyMapDao): StorageKeyMapRepository {
+        return StorageKeyMapRepository(dao)
+    }
+
+    @Provides
+    @Singleton
     fun provideUnlockManager(@IoDispatcher ioDispatcher: CoroutineDispatcher,
-                             dao: StorageKeyDao): IUnlockManager {
+                             repo: StorageKeyMapRepository,
+                             vaultsManager: IVaultsManager): IUnlockManager {
         return UnlockManager(
-            dao = dao,
-            ioDispatcher = ioDispatcher
+            repo = repo,
+            ioDispatcher = ioDispatcher,
+            vaultsManager = vaultsManager
         )
     }
 }

@@ -28,7 +28,6 @@ import kotlin.io.path.pathString
 class EncryptedStorageAccessor(
     private val source: IStorageAccessor,
     key: EncryptKey,
-    private val logger: ILogger,
     ioDispatcher: CoroutineDispatcher
 ) : IStorageAccessor, DisposableHandle {
     private val _job = Job()
