@@ -48,7 +48,9 @@ fun LocalVaultScreen(modifier: Modifier = Modifier,
                     val available by it.isAvailable.collectAsStateWithLifecycle()
                     val numOfFiles by it.numberOfFiles.collectAsStateWithLifecycle()
                     val size by it.size.collectAsStateWithLifecycle()
-                    val enc by it.encInfo.collectAsStateWithLifecycle()
+                    val metaInfo by it.metaInfo.collectAsStateWithLifecycle()
+
+                    val enc = metaInfo.encInfo
                     Column {
                         Text(it.uuid.toString())
                         Text("IsAvailable: $available")

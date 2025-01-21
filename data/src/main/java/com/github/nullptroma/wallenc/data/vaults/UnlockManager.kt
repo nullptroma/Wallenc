@@ -27,7 +27,7 @@ class UnlockManager(
     private val _openedStorages = MutableStateFlow<Map<UUID, EncryptedStorage>?>(null)
     override val openedStorages: StateFlow<Map<UUID, IStorage>?>
         get() = _openedStorages
-    val mutex = Mutex()
+    private val mutex = Mutex()
 
     init {
         CoroutineScope(ioDispatcher).launch {
@@ -51,7 +51,7 @@ class UnlockManager(
 
     private fun createEncryptedStorage(storage: IStorage, key: EncryptKey, uuid: UUID): EncryptedStorage {
         return EncryptedStorage(
-            source = storage,
+            _source = storage,
             key = key,
             ioDispatcher = ioDispatcher,
             uuid = uuid
@@ -63,13 +63,10 @@ class UnlockManager(
         key: EncryptKey
     ) = withContext(ioDispatcher) {
         mutex.lock()
-        val encInfo = storage.encInfo.value ?: throw Exception("EncInfo is null") // TODO
+        val encInfo = storage.metaInfo.value.encInfo ?: throw Exception("EncInfo is null") // TODO
         if (!Encryptor.checkKey(key, encInfo))
             throw Exception("Incorrect Key")
 
-        if (_openedStorages.value == null) {
-            val childScope = CoroutineScope(ioDispatcher)
-        }
         val opened = _openedStorages.first { it != null }!!.toMutableMap()
         val cur = opened[storage.uuid]
         if (cur != null)

@@ -1,34 +1,45 @@
 package com.github.nullptroma.wallenc.data.vaults.local
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.nullptroma.wallenc.domain.common.impl.CommonStorageMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
+import com.github.nullptroma.wallenc.domain.interfaces.IStorageMetaInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.util.UUID
 
 
 class LocalStorage(
     override val uuid: UUID,
     absolutePath: String,
-    ioDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : IStorage {
     override val size: StateFlow<Long?>
         get() = accessor.size
     override val numberOfFiles: StateFlow<Int?>
         get() = accessor.numberOfFiles
+
+    private val _metaInfo = MutableStateFlow(
+        CommonStorageMetaInfo(
+            encInfo = StorageEncryptionInfo(
+                isEncrypted = false,
+                encryptedTestData = null
+            ),
+            name = null
+        )
+    )
+    override val metaInfo: StateFlow<IStorageMetaInfo>
+        get() = _metaInfo
+
     override val isAvailable: StateFlow<Boolean>
         get() = accessor.isAvailable
     private val _accessor = LocalStorageAccessor(absolutePath, ioDispatcher)
     override val accessor: IStorageAccessor = _accessor
-
-    private val _encInfo = MutableStateFlow<StorageEncryptionInfo?>(null)
-    override val encInfo: StateFlow<StorageEncryptionInfo?>
-        get() = _encInfo
-    override val name: StateFlow<String>
-        get() = TODO("Добавить класс в Domain, который с помощью accessor будет читать и сохранять имя в скрытую папку")
 
     private val encInfoFileName: String = "$uuid$ENC_INFO_FILE_POSTFIX"
 
@@ -37,15 +48,14 @@ class LocalStorage(
         readEncInfo()
     }
 
-    private suspend fun readEncInfo() {
-        val reader = _accessor.openReadSystemFile(encInfoFileName)
+    private suspend fun readEncInfo() = withContext(ioDispatcher) {
         var enc: StorageEncryptionInfo? = null
+        var reader: InputStream? = null
         try {
-            enc = _jackson.readValue(reader, StorageEncryptionInfo::class.java)
-            reader.close()
+            reader = _accessor.openReadSystemFile(encInfoFileName)
+            enc = jackson.readValue(reader, StorageEncryptionInfo::class.java)
         }
         catch(e: Exception) {
-            reader.close()
             // чтение не удалось, значит нужно записать файл
             enc = StorageEncryptionInfo(
                 isEncrypted = false,
@@ -53,19 +63,22 @@ class LocalStorage(
             )
             setEncInfo(enc)
         }
-        _encInfo.value = enc
+        finally {
+            reader?.close()
+        }
+        _metaInfo.value = _metaInfo.value.copy(encInfo = enc)
     }
 
-    suspend fun setEncInfo(enc: StorageEncryptionInfo) {
+    suspend fun setEncInfo(enc: StorageEncryptionInfo) = withContext(ioDispatcher) {
         val writer = _accessor.openWriteSystemFile(encInfoFileName)
         try {
-            _jackson.writeValue(writer, enc)
+            jackson.writeValue(writer, enc)
         }
         catch (e: Exception) {
             TODO("Это никогда не должно произойти")
         }
         writer.close()
-        _encInfo.value = enc
+        _metaInfo.value = _metaInfo.value.copy(encInfo = enc)
     }
 
     override suspend fun rename(newName: String) {
@@ -74,6 +87,6 @@ class LocalStorage(
 
     companion object {
         const val ENC_INFO_FILE_POSTFIX = ".enc-info"
-        private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
+        private val jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
     }
 }

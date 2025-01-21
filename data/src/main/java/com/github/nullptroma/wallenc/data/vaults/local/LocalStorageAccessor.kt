@@ -3,6 +3,7 @@ package com.github.nullptroma.wallenc.data.vaults.local
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.nullptroma.wallenc.data.utils.CloseHandledStreamExtension.Companion.onClose
 import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
 import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
@@ -13,6 +14,7 @@ import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -115,7 +118,7 @@ class LocalStorageAccessor(
     ) {
 
         companion object {
-            private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
+            private val jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
 
             fun fromFile(filesystemBasePath: Path, file: File): LocalStorageFilePair? {
                 if (!file.exists())
@@ -140,19 +143,19 @@ class LocalStorageAccessor(
                         size = filePath.fileSize(),
                         path = storageFilePath
                     )
-                    _jackson.writeValue(metaFile, metaInfo)
+                    jackson.writeValue(metaFile, metaInfo)
                 } else {
                     var readMeta: CommonMetaInfo
                     try {
                         val reader = metaFile.bufferedReader()
-                        readMeta = _jackson.readValue(reader)
+                        readMeta = jackson.readValue(reader)
                     } catch (e: JacksonException) {
                         // если файл повреждён - пересоздать
                         readMeta = CommonMetaInfo(
                             size = filePath.fileSize(),
                             path = storageFilePath
                         )
-                        _jackson.writeValue(metaFile, readMeta)
+                        jackson.writeValue(metaFile, readMeta)
                     }
                     metaInfo = readMeta
                 }
@@ -171,7 +174,7 @@ class LocalStorageAccessor(
                 var pair: LocalStorageFilePair? = null
                 try {
                     val reader = metaFile.bufferedReader()
-                    val metaInfo: CommonMetaInfo = _jackson.readValue(reader)
+                    val metaInfo: CommonMetaInfo = jackson.readValue(reader)
                     val pathString = Path(filesystemBasePath.pathString, metaInfo.path).pathString
                     val file = File(pathString)
                     if (!file.exists()) {
@@ -258,8 +261,8 @@ class LocalStorageAccessor(
         var size = 0L
         var numOfFiles = 0
 
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, CommonFile ->
-            size += CommonFile.metaInfo.size
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, commonFile ->
+            size += commonFile.metaInfo.size
             numOfFiles++
 
             if (numOfFiles % DATA_PAGE_LENGTH == 0) {
@@ -402,15 +405,17 @@ class LocalStorageAccessor(
     override suspend fun setHidden(path: String, hidden: Boolean) {
         val pair = LocalStorageFilePair.from(_filesystemBasePath, path)
             ?: throw Exception("Что то пошло не так") // TODO
-        if(pair.meta.isHidden == hidden)
+        if (pair.meta.isHidden == hidden)
             return
         val newMeta = pair.meta.copy(isHidden = hidden)
         writeMeta(pair.metaFile, newMeta)
         _filesUpdates.emit(
             DataPage(
-                list = listOf(CommonFile(
-                    metaInfo = newMeta
-                )),
+                list = listOf(
+                    CommonFile(
+                        metaInfo = newMeta
+                    )
+                ),
                 pageLength = 1,
                 pageIndex = 0
             )
@@ -419,31 +424,41 @@ class LocalStorageAccessor(
 
 
     private fun writeMeta(metaFile: File, meta: IMetaInfo) {
-        _jackson.writeValue(metaFile, meta)
+        jackson.writeValue(metaFile, meta)
     }
 
-    private fun createFile(storagePath: String): CommonFile {
+    private suspend fun createFile(storagePath: String): CommonFile = withContext(ioDispatcher) {
         val path = Path(_filesystemBasePath.pathString, storagePath)
         val file = path.toFile()
-        if (file.exists() && file.isDirectory) {
+        if (file.exists() && file.isDirectory)  {
             throw Exception("Что то пошло не так") // TODO
-        } else {
+        } else if(!file.exists()) {
             file.createNewFile()
+
+            val cur = _numberOfFiles.value
+            _numberOfFiles.value = if (cur == null) null else cur + 1
         }
 
         val pair = LocalStorageFilePair.from(_filesystemBasePath, file)
             ?: throw Exception("Что то пошло не так") // TODO
         val newMeta = pair.meta.copy(lastModified = Clock.systemUTC().instant())
         writeMeta(pair.metaFile, newMeta)
-        return CommonFile(newMeta)
+        _filesUpdates.emit(
+            DataPage(
+                list = listOf(CommonFile(pair.meta)),
+                pageLength = 1,
+                pageIndex = 0
+            )
+        )
+        return@withContext CommonFile(newMeta)
     }
 
-    private fun createDir(storagePath: String): CommonDirectory {
+    private suspend fun createDir(storagePath: String): CommonDirectory = withContext(ioDispatcher) {
         val path = Path(_filesystemBasePath.pathString, storagePath)
         val file = path.toFile()
         if (file.exists() && !file.isDirectory) {
             throw Exception("Что то пошло не так") // TODO
-        } else {
+        } else if(!file.exists()) {
             Files.createDirectories(path)
         }
 
@@ -451,11 +466,25 @@ class LocalStorageAccessor(
             ?: throw Exception("Что то пошло не так") // TODO
         val newMeta = pair.meta.copy(lastModified = Clock.systemUTC().instant())
         writeMeta(pair.metaFile, newMeta)
-        return CommonDirectory(newMeta, 0)
+        _dirsUpdates.emit(
+            DataPage(
+                list = listOf(CommonDirectory(pair.meta, null)),
+                pageLength = 1,
+                pageIndex = 0
+            )
+        )
+        return@withContext CommonDirectory(newMeta, 0)
     }
 
     override suspend fun touchFile(path: String): Unit = withContext(ioDispatcher) {
         createFile(path)
+
+        // перебор все каталогов и обновление их времени модификации
+        var parent = Path(path).parent
+        while(parent != null) {
+           touchDir(parent.pathString)
+           parent = parent.parent
+        }
     }
 
     override suspend fun touchDir(path: String): Unit = withContext(ioDispatcher) {
@@ -474,7 +503,11 @@ class LocalStorageAccessor(
         touchFile(path)
         val pair = LocalStorageFilePair.from(_filesystemBasePath, path)
             ?: throw Exception("Файла нет") // TODO
-        return@withContext pair.file.outputStream()
+        return@withContext pair.file.outputStream().onClose {
+            CoroutineScope(ioDispatcher).launch {
+                touchFile(path)
+            }
+        }
     }
 
     override suspend fun openRead(path: String): InputStream = withContext(ioDispatcher) {
@@ -519,6 +552,6 @@ class LocalStorageAccessor(
         private const val SYSTEM_HIDDEN_DIRNAME = "wallenc-local-storage-meta-dir"
         private const val META_INFO_POSTFIX = ".wallenc-meta"
         private const val DATA_PAGE_LENGTH = 10
-        private val _jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
+        private val jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
     }
 }

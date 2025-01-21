@@ -34,18 +34,18 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     private val _availableSpace = MutableStateFlow(null)
     override val availableSpace: StateFlow<Int?> = _availableSpace
 
-    private val _path = MutableStateFlow<File?>(null)
+    private val path = MutableStateFlow<File?>(null)
 
     init {
         CoroutineScope(ioDispatcher).launch {
-            _path.value = context.getExternalFilesDir("LocalVault")
-            _isAvailable.value = _path.value != null
+            path.value = context.getExternalFilesDir("LocalVault")
+            _isAvailable.value = path.value != null
             readStorages()
         }
     }
 
     private suspend fun readStorages() {
-        val path = _path.value
+        val path = path.value
         if (path == null || !_isAvailable.value)
             return
 
@@ -59,7 +59,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     }
 
     override suspend fun createStorage(): LocalStorage = withContext(ioDispatcher) {
-        val path = _path.value
+        val path = path.value
         if (path == null || !_isAvailable.value)
             throw Exception("Not available")
 

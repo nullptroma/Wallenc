@@ -7,7 +7,6 @@ import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
-import com.github.nullptroma.wallenc.domain.interfaces.ILogger
 import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,8 +29,8 @@ class EncryptedStorageAccessor(
     key: EncryptKey,
     ioDispatcher: CoroutineDispatcher
 ) : IStorageAccessor, DisposableHandle {
-    private val _job = Job()
-    private val _scope = CoroutineScope(ioDispatcher + _job)
+    private val job = Job()
+    private val scope = CoroutineScope(ioDispatcher + job)
 
     override val size: StateFlow<Long?> = source.size
     override val numberOfFiles: StateFlow<Int?> = source.numberOfFiles
@@ -43,14 +42,14 @@ class EncryptedStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPackage<List<IDirectory>>>()
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
-    private val _encryptor = Encryptor(key.toAesKey())
+    private val encryptor = Encryptor(key.toAesKey())
 
     init {
         collectSourceState()
     }
 
     private fun collectSourceState() {
-        _scope.launch {
+        scope.launch {
             launch {
                 source.filesUpdates.collect {
                     val files = it.data.map(::decryptEntity)
@@ -116,7 +115,7 @@ class EncryptedStorageAccessor(
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(_encryptor.encryptString(segment.pathString))
+            segments.add(encryptor.encryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -125,7 +124,7 @@ class EncryptedStorageAccessor(
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(_encryptor.decryptString(segment.pathString))
+            segments.add(encryptor.decryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -198,12 +197,12 @@ class EncryptedStorageAccessor(
 
     override suspend fun openWrite(path: String): OutputStream {
         val stream = source.openWrite(encryptPath(path))
-        return _encryptor.encryptStream(stream)
+        return encryptor.encryptStream(stream)
     }
 
     override suspend fun openRead(path: String): InputStream {
         val stream = source.openRead(encryptPath(path))
-        return _encryptor.decryptStream(stream)
+        return encryptor.decryptStream(stream)
     }
 
     override suspend fun moveToTrash(path: String) {
@@ -211,7 +210,8 @@ class EncryptedStorageAccessor(
     }
 
     override fun dispose() {
-        _job.cancel()
-        _encryptor.dispose()
+        job.cancel()
+        encryptor.dispose()
     }
+
 }

@@ -12,7 +12,6 @@ import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCas
 import com.github.nullptroma.wallenc.presentation.extensions.toPrintable
 import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -21,15 +20,15 @@ import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class LocalVaultViewModel @Inject constructor(
-    private val _manageLocalVaultUseCase: ManageLocalVaultUseCase,
-    private val _getOpenedStoragesUseCase: GetOpenedStoragesUseCase,
-    private val _storageFileManagementUseCase: StorageFileManagementUseCase,
+    private val manageLocalVaultUseCase: ManageLocalVaultUseCase,
+    private val getOpenedStoragesUseCase: GetOpenedStoragesUseCase,
+    private val storageFileManagementUseCase: StorageFileManagementUseCase,
     private val logger: ILogger
 ) :
     ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
     init {
         viewModelScope.launch {
-            _manageLocalVaultUseCase.localStorages.combine(_getOpenedStoragesUseCase.openedStorages) { local, opened ->
+            manageLocalVaultUseCase.localStorages.combine(getOpenedStoragesUseCase.openedStorages) { local, opened ->
                 local + (opened?.map { it.value } ?: listOf())
             }.collectLatest {
                 val newState = state.value.copy(
@@ -41,13 +40,13 @@ class LocalVaultViewModel @Inject constructor(
     }
 
     fun printStorageInfoToLog(storage: IStorageInfo) {
-        _storageFileManagementUseCase.setStorage(storage)
+        storageFileManagementUseCase.setStorage(storage)
         viewModelScope.launch {
             val files: List<IFile>
             val dirs: List<IDirectory>
             val time = measureTimeMillis {
-                files = _storageFileManagementUseCase.getAllFiles()
-                dirs = _storageFileManagementUseCase.getAllDirs()
+                files = storageFileManagementUseCase.getAllFiles()
+                dirs = storageFileManagementUseCase.getAllDirs()
             }
             for (file in files) {
                 logger.debug("Files", file.metaInfo.toString())
@@ -62,7 +61,7 @@ class LocalVaultViewModel @Inject constructor(
 
     fun createStorage() {
         viewModelScope.launch {
-            _manageLocalVaultUseCase.createStorage(EncryptKey("hello"))
+            manageLocalVaultUseCase.createStorage(EncryptKey("hello"))
         }
     }
 }
