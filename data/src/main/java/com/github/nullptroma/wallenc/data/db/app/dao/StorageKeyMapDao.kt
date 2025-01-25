@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 @Dao
 interface StorageKeyMapDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(keymap: DbStorageKeyMap)
+    suspend fun add(keymap: DbStorageKeyMap)
 
     @Query("SELECT * FROM storage_key_maps")
-    fun getAll(): List<DbStorageKeyMap>
+    suspend fun getAll(): List<DbStorageKeyMap>
 
     @Delete
-    fun delete(keymap: DbStorageKeyMap)
+    suspend fun delete(keymap: DbStorageKeyMap)
 }

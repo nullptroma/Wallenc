@@ -1,9 +1,10 @@
-package com.github.nullptroma.wallenc.data.vaults
+package com.github.nullptroma.wallenc.data.storages
 
 import com.github.nullptroma.wallenc.data.db.app.repository.StorageKeyMapRepository
+import com.github.nullptroma.wallenc.data.db.app.repository.StorageMetaInfoRepository
 import com.github.nullptroma.wallenc.data.model.StorageKeyMap
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
-import com.github.nullptroma.wallenc.domain.encrypt.EncryptedStorage
+import com.github.nullptroma.wallenc.data.storages.encrypt.EncryptedStorage
 import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
@@ -20,7 +21,8 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 class UnlockManager(
-    private val repo: StorageKeyMapRepository,
+    private val keymapRepository: StorageKeyMapRepository,
+    private val metaInfoRepository: StorageMetaInfoRepository,
     private val ioDispatcher: CoroutineDispatcher,
     vaultsManager: IVaultsManager
 ) : IUnlockManager {
@@ -33,7 +35,7 @@ class UnlockManager(
         CoroutineScope(ioDispatcher).launch {
             vaultsManager.allStorages.collectLatest {
                 mutex.lock()
-                val allKeys = repo.getAll()
+                val allKeys = keymapRepository.getAll()
                 val allStorages = it.associateBy({ it.uuid }, { it })
                 val map = _openedStorages.value?.toMutableMap() ?: mutableMapOf()
                 for(keymap in allKeys) {
@@ -49,11 +51,12 @@ class UnlockManager(
         }
     }
 
-    private fun createEncryptedStorage(storage: IStorage, key: EncryptKey, uuid: UUID): EncryptedStorage {
-        return EncryptedStorage(
-            _source = storage,
+    private suspend fun createEncryptedStorage(storage: IStorage, key: EncryptKey, uuid: UUID): EncryptedStorage {
+        return EncryptedStorage.create(
+            source = storage,
             key = key,
             ioDispatcher = ioDispatcher,
+            metaInfoProvider = metaInfoRepository.createSingleStorageProvider(uuid),
             uuid = uuid
         )
     }
@@ -80,7 +83,7 @@ class UnlockManager(
         val encStorage = createEncryptedStorage(storage, keymap.key, keymap.destUuid)
         opened[storage.uuid] = encStorage
         _openedStorages.value = opened
-        repo.add(keymap)
+        keymapRepository.add(keymap)
         mutex.unlock()
     }
 
@@ -97,7 +100,7 @@ class UnlockManager(
             remove(storage.uuid)
         }
         enc.dispose()
-        repo.delete(model)
+        keymapRepository.delete(model)
         mutex.unlock()
     }
 }

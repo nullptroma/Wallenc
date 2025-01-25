@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.data.vaults.local
+package com.github.nullptroma.wallenc.data.storages.local
 
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -57,7 +57,7 @@ class LocalStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPage<IDirectory>>()
     override val dirsUpdates: SharedFlow<DataPage<IDirectory>> = _dirsUpdates
 
-    suspend fun init() {
+    suspend fun init() = withContext(ioDispatcher) {
         // запускам сканирование хранилища
         scanSizeAndNumOfFiles()
     }
@@ -251,11 +251,11 @@ class LocalStorageAccessor(
      * Считает файлы и их размер. Не бросает исключения, если файлы недоступны
      * @throws none Если возникла ошибка, оставляет размер и количества файлов равными null
      */
-    private suspend fun scanSizeAndNumOfFiles() {
+    private suspend fun scanSizeAndNumOfFiles() = withContext(ioDispatcher) {
         if (!checkAvailable()) {
             _size.value = null
             _numberOfFiles.value = null
-            return
+            return@withContext
         }
 
         var size = 0L
@@ -280,8 +280,8 @@ class LocalStorageAccessor(
             return@withContext listOf()
 
         val list = mutableListOf<IFile>()
-        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, CommonFile ->
-            list.add(CommonFile)
+        scanStorage(baseStoragePath = "/", maxDepth = -1, fileCallback = { _, commonFile ->
+            list.add(commonFile)
         })
         return@withContext list
     }

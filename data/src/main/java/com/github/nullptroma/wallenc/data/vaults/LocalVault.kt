@@ -1,6 +1,7 @@
-package com.github.nullptroma.wallenc.data.vaults.local
+package com.github.nullptroma.wallenc.data.vaults
 
 import android.content.Context
+import com.github.nullptroma.wallenc.data.storages.local.LocalStorage
 import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.enums.VaultType
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage

@@ -1,7 +1,7 @@
 [versions]
 agp = "8.8.0"
 jacksonModuleKotlin = "2.18.2"
-kotlin = "2.0.10"
+kotlin = "2.0.20"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -17,12 +17,11 @@ hiltNavigation = "1.2.0"
 timber = "5.0.1"
 yandexAuthSdk = "3.1.2"
 daggerHilt = "2.52"
-ksp = "2.0.10-1.0.24"
+ksp = "2.0.20-1.0.25"
 room = "2.6.1"
 retrofit = "2.11.0"
 appcompat = "1.7.0"
 material = "1.12.0"
-runtimeAndroid = "1.7.5"
 
 [libraries]
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }

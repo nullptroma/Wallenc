@@ -9,4 +9,5 @@ sealed interface IStorageInfo {
     val size: StateFlow<Long?>
     val numberOfFiles: StateFlow<Int?>
     val metaInfo: StateFlow<IStorageMetaInfo>
+    val isVirtualStorage: Boolean
 }

@@ -1,10 +1,11 @@
-package com.github.nullptroma.wallenc.domain.encrypt
+package com.github.nullptroma.wallenc.data.storages.encrypt
 
 import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
 import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo

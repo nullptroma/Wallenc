@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.data.vaults.local
+package com.github.nullptroma.wallenc.data.storages.local
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.nullptroma.wallenc.domain.common.impl.CommonStorageMetaInfo
@@ -24,14 +24,8 @@ class LocalStorage(
     override val numberOfFiles: StateFlow<Int?>
         get() = accessor.numberOfFiles
 
-    private val _metaInfo = MutableStateFlow(
-        CommonStorageMetaInfo(
-            encInfo = StorageEncryptionInfo(
-                isEncrypted = false,
-                encryptedTestData = null
-            ),
-            name = null
-        )
+    private val _metaInfo = MutableStateFlow<IStorageMetaInfo>(
+        CommonStorageMetaInfo()
     )
     override val metaInfo: StateFlow<IStorageMetaInfo>
         get() = _metaInfo
@@ -40,49 +34,60 @@ class LocalStorage(
         get() = accessor.isAvailable
     private val _accessor = LocalStorageAccessor(absolutePath, ioDispatcher)
     override val accessor: IStorageAccessor = _accessor
-
-    private val encInfoFileName: String = "$uuid$ENC_INFO_FILE_POSTFIX"
+    override val isVirtualStorage: Boolean = false
+    private val metaInfoFileName: String = "$uuid$ENC_INFO_FILE_POSTFIX"
 
     suspend fun init() {
         _accessor.init()
-        readEncInfo()
+        readMetaInfo()
     }
 
-    private suspend fun readEncInfo() = withContext(ioDispatcher) {
-        var enc: StorageEncryptionInfo? = null
+    private suspend fun readMetaInfo() = withContext(ioDispatcher) {
+        var meta: CommonStorageMetaInfo
         var reader: InputStream? = null
         try {
-            reader = _accessor.openReadSystemFile(encInfoFileName)
-            enc = jackson.readValue(reader, StorageEncryptionInfo::class.java)
+            reader = _accessor.openReadSystemFile(metaInfoFileName)
+            meta = jackson.readValue(reader, CommonStorageMetaInfo::class.java)
         }
         catch(e: Exception) {
             // чтение не удалось, значит нужно записать файл
-            enc = StorageEncryptionInfo(
-                isEncrypted = false,
-                encryptedTestData = null
-            )
-            setEncInfo(enc)
+            meta = CommonStorageMetaInfo()
+            updateMetaInfo(meta)
         }
         finally {
             reader?.close()
         }
-        _metaInfo.value = _metaInfo.value.copy(encInfo = enc)
+        _metaInfo.value = meta
     }
 
-    suspend fun setEncInfo(enc: StorageEncryptionInfo) = withContext(ioDispatcher) {
-        val writer = _accessor.openWriteSystemFile(encInfoFileName)
+    private suspend fun updateMetaInfo(meta: IStorageMetaInfo) = withContext(ioDispatcher) {
+        val writer = _accessor.openWriteSystemFile(metaInfoFileName)
         try {
-            jackson.writeValue(writer, enc)
+            jackson.writeValue(writer, meta)
         }
         catch (e: Exception) {
-            TODO("Это никогда не должно произойти")
+            throw e
         }
-        writer.close()
-        _metaInfo.value = _metaInfo.value.copy(encInfo = enc)
+        finally {
+            writer.close()
+        }
+        _metaInfo.value = meta
     }
 
-    override suspend fun rename(newName: String) {
-        TODO("Not yet implemented")
+    override suspend fun rename(newName: String) = withContext(ioDispatcher) {
+        val curMeta = metaInfo.value
+        updateMetaInfo(CommonStorageMetaInfo(
+            encInfo = curMeta.encInfo,
+            name = newName
+        ))
+    }
+
+    override suspend fun setEncInfo(encInfo: StorageEncryptionInfo) = withContext(ioDispatcher) {
+        val curMeta = metaInfo.value
+        updateMetaInfo(CommonStorageMetaInfo(
+            encInfo = encInfo,
+            name = curMeta.name
+        ))
     }
 
     companion object {

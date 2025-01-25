@@ -1,6 +1,5 @@
 package com.github.nullptroma.wallenc.app.di.modules.domain
 
-import com.github.nullptroma.wallenc.data.vaults.UnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import com.github.nullptroma.wallenc.domain.usecases.GetOpenedStoragesUseCase

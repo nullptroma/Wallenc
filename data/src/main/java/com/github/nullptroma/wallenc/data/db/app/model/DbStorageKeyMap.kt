@@ -9,14 +9,14 @@ import java.util.UUID
 
 @Entity(tableName = "storage_key_maps", primaryKeys = [ "source_uuid", "dest_uuid" ])
 data class DbStorageKeyMap(
-    @ColumnInfo(name = "source_uuid") val sourceUuid: String,
-    @ColumnInfo(name = "dest_uuid") val destUuid: String,
+    @ColumnInfo(name = "source_uuid") val sourceUuid: UUID,
+    @ColumnInfo(name = "dest_uuid") val destUuid: UUID,
     @ColumnInfo(name = "key") val key: ByteArray
 ) {
     fun toModel(): StorageKeyMap {
         return StorageKeyMap(
-            sourceUuid = UUID.fromString(sourceUuid),
-            destUuid = UUID.fromString(destUuid),
+            sourceUuid = sourceUuid,
+            destUuid = destUuid,
             key = EncryptKey(key)
         )
     }
@@ -44,8 +44,8 @@ data class DbStorageKeyMap(
     companion object {
         fun fromModel(keymap: StorageKeyMap): DbStorageKeyMap {
             return DbStorageKeyMap(
-                sourceUuid = keymap.sourceUuid.toString(),
-                destUuid = keymap.destUuid.toString(),
+                sourceUuid = keymap.sourceUuid,
+                destUuid = keymap.destUuid,
                 key = keymap.key.bytes
             )
         }

@@ -1,7 +1,6 @@
 package com.github.nullptroma.wallenc.data.vaults
 
 import android.content.Context
-import com.github.nullptroma.wallenc.data.vaults.local.LocalVault
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IVault
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager

@@ -9,7 +9,10 @@ import java.time.Instant
 
 
 data class CommonStorageMetaInfo(
-    override val encInfo: StorageEncryptionInfo?,
-    override val name: String?,
+    override val encInfo: StorageEncryptionInfo = StorageEncryptionInfo(
+        isEncrypted = false,
+        encryptedTestData = null
+    ),
+    override val name: String? = null,
     override val lastModified: Instant = Clock.systemUTC().instant()
 ) : IStorageMetaInfo

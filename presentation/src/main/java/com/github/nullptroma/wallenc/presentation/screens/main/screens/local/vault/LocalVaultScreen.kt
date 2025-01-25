@@ -44,14 +44,14 @@ fun LocalVaultScreen(modifier: Modifier = Modifier,
                     detectTapGestures(
                         onTap = { _ -> viewModel.printStorageInfoToLog(it) }
                     )
-                }) {
+                }.padding(8.dp)) {
                     val available by it.isAvailable.collectAsStateWithLifecycle()
                     val numOfFiles by it.numberOfFiles.collectAsStateWithLifecycle()
                     val size by it.size.collectAsStateWithLifecycle()
                     val metaInfo by it.metaInfo.collectAsStateWithLifecycle()
 
                     val enc = metaInfo.encInfo
-                    Column {
+                    Column(modifier = Modifier.padding(4.dp)) {
                         Text(it.uuid.toString())
                         Text("IsAvailable: $available")
                         Text("Files: $numOfFiles")

@@ -4,6 +4,7 @@ import android.content.Context
 import com.github.nullptroma.wallenc.data.db.RoomFactory
 import com.github.nullptroma.wallenc.data.db.app.IAppDb
 import com.github.nullptroma.wallenc.data.db.app.dao.StorageKeyMapDao
+import com.github.nullptroma.wallenc.data.db.app.dao.StorageMetaInfoDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +24,12 @@ class RoomModule {
     @Singleton
     fun provideStorageKeyDao(database: IAppDb): StorageKeyMapDao {
         return database.storageKeyMapDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideStorageMetaInfoDao(database: IAppDb): StorageMetaInfoDao {
+        return database.storageMetaInfoDao
     }
 
     @Provides
