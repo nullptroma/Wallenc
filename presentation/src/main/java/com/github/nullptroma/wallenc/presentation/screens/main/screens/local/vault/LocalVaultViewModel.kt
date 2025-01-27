@@ -2,6 +2,7 @@ package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.va
 
 import androidx.lifecycle.viewModelScope
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
+import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.ILogger
@@ -24,12 +25,22 @@ class LocalVaultViewModel @Inject constructor(
     private val getOpenedStoragesUseCase: GetOpenedStoragesUseCase,
     private val storageFileManagementUseCase: StorageFileManagementUseCase,
     private val logger: ILogger
-) :
-    ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
+) : ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
     init {
         viewModelScope.launch {
             manageLocalVaultUseCase.localStorages.combine(getOpenedStoragesUseCase.openedStorages) { local, opened ->
-                local + (opened?.map { it.value } ?: listOf())
+                val list = mutableListOf<Tree<IStorageInfo>>()
+                for (storage in local) {
+                    var tree = Tree(storage)
+                    list.add(tree)
+                    while(opened != null && opened.containsKey(tree.value.uuid)) {
+                        val child = opened.getValue(tree.value.uuid)
+                        val nextTree = Tree(child)
+                        tree.children = listOf(nextTree)
+                        tree = nextTree
+                    }
+                }
+                return@combine list
             }.collectLatest {
                 val newState = state.value.copy(
                     storagesList = it
@@ -61,7 +72,7 @@ class LocalVaultViewModel @Inject constructor(
 
     fun createStorage() {
         viewModelScope.launch {
-            manageLocalVaultUseCase.createStorage(EncryptKey("hello"))
+            manageLocalVaultUseCase.createStorage()
         }
     }
 }

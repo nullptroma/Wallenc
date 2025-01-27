@@ -3,6 +3,7 @@ package com.github.nullptroma.wallenc.data.db.app.repository
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.nullptroma.wallenc.data.db.app.dao.StorageMetaInfoDao
 import com.github.nullptroma.wallenc.data.db.app.model.DbStorageMetaInfo
+import com.github.nullptroma.wallenc.data.utils.IProvider
 import com.github.nullptroma.wallenc.domain.common.impl.CommonStorageMetaInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +35,11 @@ class StorageMetaInfoRepository(
         dao.add(DbStorageMetaInfo(uuid, json))
     }
 
+    suspend fun delete(uuid: UUID) = withContext(ioDispatcher)  {
+        dao.delete(uuid)
+    }
+
+
     fun createSingleStorageProvider(uuid: UUID): SingleStorageMetaInfoProvider {
         return SingleStorageMetaInfoProvider(this, uuid)
     }
@@ -41,9 +47,10 @@ class StorageMetaInfoRepository(
     class SingleStorageMetaInfoProvider (
         private val repo: StorageMetaInfoRepository,
         val uuid: UUID
-    ) {
-        suspend fun get(): CommonStorageMetaInfo? = repo.getMeta(uuid)
-        suspend fun set(metaInfo: CommonStorageMetaInfo) = repo.setMeta(uuid, metaInfo)
+    ) : IProvider<CommonStorageMetaInfo> {
+        override suspend fun get(): CommonStorageMetaInfo? = repo.getMeta(uuid)
+        override suspend fun clear() = repo.delete(uuid)
+        override suspend fun set(value: CommonStorageMetaInfo) = repo.setMeta(uuid, value)
     }
 
     companion object {

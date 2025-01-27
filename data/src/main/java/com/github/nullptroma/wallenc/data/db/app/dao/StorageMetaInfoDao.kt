@@ -28,4 +28,7 @@ interface StorageMetaInfoDao {
 
     @Delete
     suspend fun delete(metaInfo: DbStorageMetaInfo)
+
+    @Query("DELETE FROM storage_meta_infos WHERE uuid == :uuid")
+    suspend fun delete(uuid: UUID)
 }
