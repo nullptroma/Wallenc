@@ -1,4 +1,4 @@
-package com.github.nullptroma.wallenc.presentation.viewmodel
+package com.github.nullptroma.wallenc.presentation
 
 
 import androidx.lifecycle.ViewModel

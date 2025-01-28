@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.compose.saveable
 import com.github.nullptroma.wallenc.presentation.screens.ScreenRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.MainRoute
 import com.github.nullptroma.wallenc.presentation.screens.settings.SettingsRoute
-import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.collections.set
 

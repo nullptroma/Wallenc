@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.presentation.R
+import com.github.nullptroma.wallenc.presentation.elements.StorageTree
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +55,7 @@ import kotlin.random.Random
 fun LocalVaultScreen(
     modifier: Modifier = Modifier,
     viewModel: LocalVaultViewModel = hiltViewModel(),
-    openTextEdit: (String)->Unit
+    openTextEdit: (String) -> Unit
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -68,66 +69,19 @@ fun LocalVaultScreen(
         }
     }) { innerPadding ->
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(uiState.storagesList) { tree ->
-                Storage(Modifier.padding(8.dp), tree) {
-                    openTextEdit(it.value.uuid.toString())
-                }
+            items(uiState.storagesList) { listItem ->
+                StorageTree(
+                    modifier = Modifier.padding(8.dp),
+                    tree = listItem,
+                    onClick = {
+                        openTextEdit(it.value.uuid.toString())
+                    },
+                    onRename = { tree, newName ->
+                        viewModel.rename(tree.value, newName)
+                    }
+                )
             }
         }
     }
 }
 
-@Composable
-fun Storage(modifier: Modifier, tree: Tree<IStorageInfo>, onClick: (Tree<IStorageInfo>) -> Unit) {
-    val cur = tree.value
-    val cardShape = RoundedCornerShape(30.dp)
-    Column(modifier) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(cardShape)
-                .clickable {
-                    onClick(tree)
-                    //viewModel.printStorageInfoToLog(cur)
-                },
-            shape = cardShape,
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            ),
-        ) {
-            val available by cur.isAvailable.collectAsStateWithLifecycle()
-            val numOfFiles by cur.numberOfFiles.collectAsStateWithLifecycle()
-            val size by cur.size.collectAsStateWithLifecycle()
-            val metaInfo by cur.metaInfo.collectAsStateWithLifecycle()
-
-            Row {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text(metaInfo.name ?: stringResource(R.string.no_name))
-                    Text(
-                        text = "IsAvailable: $available"
-                    )
-                    Text("Files: $numOfFiles")
-                    Text("Size: $size")
-                    Text("IsVirtual: ${cur.isVirtualStorage}")
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp,0.dp,8.dp,0.dp)
-                            .align(Alignment.End),
-                        text = cur.uuid.toString(),
-                        textAlign = TextAlign.End,
-                        fontSize = 8.sp,
-                        style = LocalTextStyle.current.copy(
-                            platformStyle = PlatformTextStyle(
-                                includeFontPadding = true
-                            )
-                        )
-                    )
-                }
-            }
-        }
-        for(i in tree.children ?: listOf()) {
-            Storage(Modifier.padding(16.dp,0.dp,0.dp,0.dp), i, onClick)
-        }
-    }
-}

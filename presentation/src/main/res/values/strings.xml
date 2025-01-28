@@ -7,4 +7,7 @@
 
     <string name="settings_title">Settings Screen Title!</string>
     <string name="no_name">&lt;noname&gt;</string>
+    <string name="show_storage_item_menu">Show storage item menu</string>
+    <string name="rename">Rename</string>
+
 </resources>

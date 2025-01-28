@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.compose.saveable
 import com.github.nullptroma.wallenc.presentation.screens.ScreenRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault.LocalVaultRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
-import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
+import com.github.nullptroma.wallenc.presentation.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 @HiltViewModel

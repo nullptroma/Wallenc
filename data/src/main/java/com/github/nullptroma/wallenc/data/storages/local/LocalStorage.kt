@@ -35,7 +35,7 @@ class LocalStorage(
     private val _accessor = LocalStorageAccessor(absolutePath, ioDispatcher)
     override val accessor: IStorageAccessor = _accessor
     override val isVirtualStorage: Boolean = false
-    private val metaInfoFileName: String = "$uuid$ENC_INFO_FILE_POSTFIX"
+    private val metaInfoFileName: String = "$uuid$STORAGE_INFO_FILE_POSTFIX"
 
     suspend fun init() {
         _accessor.init()
@@ -91,7 +91,7 @@ class LocalStorage(
     }
 
     companion object {
-        const val ENC_INFO_FILE_POSTFIX = ".enc-info"
+        const val STORAGE_INFO_FILE_POSTFIX = ".storage-info"
         private val jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
     }
 }

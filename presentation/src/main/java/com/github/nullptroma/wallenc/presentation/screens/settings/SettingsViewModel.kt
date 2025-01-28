@@ -1,6 +1,6 @@
 package com.github.nullptroma.wallenc.presentation.screens.settings
 
-import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
+import com.github.nullptroma.wallenc.presentation.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 @HiltViewModel

@@ -1,7 +1,6 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
 import androidx.lifecycle.viewModelScope
-import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
@@ -9,9 +8,10 @@ import com.github.nullptroma.wallenc.domain.interfaces.ILogger
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.domain.usecases.GetOpenedStoragesUseCase
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
+import com.github.nullptroma.wallenc.domain.usecases.RenameStorageUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import com.github.nullptroma.wallenc.presentation.extensions.toPrintable
-import com.github.nullptroma.wallenc.presentation.viewmodel.ViewModelBase
+import com.github.nullptroma.wallenc.presentation.ViewModelBase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -24,6 +24,7 @@ class LocalVaultViewModel @Inject constructor(
     private val manageLocalVaultUseCase: ManageLocalVaultUseCase,
     private val getOpenedStoragesUseCase: GetOpenedStoragesUseCase,
     private val storageFileManagementUseCase: StorageFileManagementUseCase,
+    private val renameStorageUseCase: RenameStorageUseCase,
     private val logger: ILogger
 ) : ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
     init {
@@ -73,6 +74,12 @@ class LocalVaultViewModel @Inject constructor(
     fun createStorage() {
         viewModelScope.launch {
             manageLocalVaultUseCase.createStorage()
+        }
+    }
+
+    fun rename(storage: IStorageInfo, newName: String) {
+        viewModelScope.launch {
+            renameStorageUseCase.rename(storage, newName)
         }
     }
 }
