@@ -11,10 +11,16 @@ import com.github.nullptroma.wallenc.presentation.screens.ScreenRoute
 class NavigationState(
     val navHostController: NavHostController
 ) {
-    fun navigationTo(route: ScreenRoute) {
+    fun changeTop(route: ScreenRoute) {
         navHostController.navigate(route) {
             popUpTo(navHostController.graph.findStartDestination().id)
             launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    fun push(route: ScreenRoute) {
+        navHostController.navigate(route) {
             restoreState = true
         }
     }

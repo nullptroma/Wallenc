@@ -53,7 +53,8 @@ import kotlin.random.Random
 @Composable
 fun LocalVaultScreen(
     modifier: Modifier = Modifier,
-    viewModel: LocalVaultViewModel = hiltViewModel()
+    viewModel: LocalVaultViewModel = hiltViewModel(),
+    openTextEdit: (String)->Unit
 ) {
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -68,14 +69,16 @@ fun LocalVaultScreen(
     }) { innerPadding ->
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             items(uiState.storagesList) { tree ->
-                Storage(Modifier.padding(8.dp), tree)
+                Storage(Modifier.padding(8.dp), tree) {
+                    openTextEdit(it.value.uuid.toString())
+                }
             }
         }
     }
 }
 
 @Composable
-fun Storage(modifier: Modifier, tree: Tree<IStorageInfo>) {
+fun Storage(modifier: Modifier, tree: Tree<IStorageInfo>, onClick: (Tree<IStorageInfo>) -> Unit) {
     val cur = tree.value
     val cardShape = RoundedCornerShape(30.dp)
     Column(modifier) {
@@ -84,6 +87,7 @@ fun Storage(modifier: Modifier, tree: Tree<IStorageInfo>) {
                 .fillMaxWidth()
                 .clip(cardShape)
                 .clickable {
+                    onClick(tree)
                     //viewModel.printStorageInfoToLog(cur)
                 },
             shape = cardShape,
@@ -123,7 +127,7 @@ fun Storage(modifier: Modifier, tree: Tree<IStorageInfo>) {
             }
         }
         for(i in tree.children ?: listOf()) {
-            Storage(Modifier.padding(16.dp,0.dp,0.dp,0.dp), i)
+            Storage(Modifier.padding(16.dp,0.dp,0.dp,0.dp), i, onClick)
         }
     }
 }

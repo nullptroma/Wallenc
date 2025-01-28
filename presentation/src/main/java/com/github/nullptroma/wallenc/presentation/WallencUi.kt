@@ -25,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.toRoute
 import com.github.nullptroma.wallenc.presentation.navigation.NavBarItemData
 import com.github.nullptroma.wallenc.presentation.navigation.rememberNavigationState
 import com.github.nullptroma.wallenc.presentation.screens.main.MainRoute
@@ -90,7 +89,7 @@ fun WallencNavRoot(viewModel: WallencViewModel = hiltViewModel()) {
                         var route = topLevelRoutes[navBarItemData.screenRouteClass]
                         if (route == null)
                             throw NullPointerException("Route $route not found")
-                        if (currentRoute?.startsWith(routeClassName) != true) navState.navigationTo(
+                        if (currentRoute?.startsWith(routeClassName) != true) navState.changeTop(
                             route
                         )
                     })

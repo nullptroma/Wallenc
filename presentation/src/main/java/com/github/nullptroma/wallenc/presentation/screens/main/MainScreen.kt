@@ -34,6 +34,8 @@ import com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vau
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsRoute
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsScreen
 import com.github.nullptroma.wallenc.presentation.screens.main.screens.remotes.RemoteVaultsViewModel
+import com.github.nullptroma.wallenc.presentation.screens.shared.TextEditRoute
+import com.github.nullptroma.wallenc.presentation.screens.shared.TextEditScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,19 +74,18 @@ fun MainScreen(
                         icon = { Text(stringResource(navBarItemData.nameStringResourceId)) },
                         selected = currentRoute?.startsWith(routeClassName) == true,
                         onClick = {
-                            var route = routes[navBarItemData.screenRouteClass]
-                            if (route == null)
-                                throw NullPointerException("Route $route not found")
-                            if (currentRoute?.startsWith(routeClassName) != true) navState.navigationTo(
-                                route
-                            )
+                            val route = routes[navBarItemData.screenRouteClass]
+                                ?: throw NullPointerException("Route ${navBarItemData.screenRouteClass} not found")
+                            if (currentRoute?.startsWith(routeClassName) != true)
+                                navState.changeTop(
+                                    route
+                                )
                         })
                 }
             }
             HorizontalDivider()
         }
     }) { innerPaddings ->
-
         NavHost(
             navState.navHostController,
             startDestination = routes[LocalVaultRoute::class.qualifiedName]!!
@@ -98,7 +99,9 @@ fun MainScreen(
                 LocalVaultScreen(
                     modifier = Modifier.padding(innerPaddings),
                     viewModel = localVaultViewModel
-                )
+                ) { text ->
+                    navState.push(TextEditRoute(text))
+                }
             }
             composable<RemoteVaultsRoute>(enterTransition = {
                 fadeIn(tween(200))
@@ -109,6 +112,10 @@ fun MainScreen(
                     modifier = Modifier.padding(innerPaddings),
                     viewModel = remoteVaultsViewModel
                 )
+            }
+            composable<TextEditRoute> {
+                val route: TextEditRoute = it.toRoute()
+                TextEditScreen(route.text)
             }
         }
     }
