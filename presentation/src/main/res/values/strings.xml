@@ -9,5 +9,8 @@
     <string name="no_name">&lt;noname&gt;</string>
     <string name="show_storage_item_menu">Show storage item menu</string>
     <string name="rename">Rename</string>
+    <string name="remove">Remove</string>
+    <string name="new_name_title">New name</string>
+    <string name="remove_confirmation_dialog">Delete storage "%1$s"?</string>
 
 </resources>

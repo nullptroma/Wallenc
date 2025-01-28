@@ -16,7 +16,7 @@ import java.util.UUID
 
 class LocalStorage(
     override val uuid: UUID,
-    absolutePath: String,
+    val absolutePath: String,
     private val ioDispatcher: CoroutineDispatcher,
 ) : IStorage {
     override val size: StateFlow<Long?>

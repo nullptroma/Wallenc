@@ -82,4 +82,10 @@ class LocalVaultViewModel @Inject constructor(
             renameStorageUseCase.rename(storage, newName)
         }
     }
+
+    fun remove(storage: IStorageInfo) {
+        viewModelScope.launch {
+            manageLocalVaultUseCase.remove(storage)
+        }
+    }
 }

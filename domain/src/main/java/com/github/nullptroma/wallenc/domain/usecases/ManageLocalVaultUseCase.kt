@@ -2,6 +2,7 @@ package com.github.nullptroma.wallenc.domain.usecases
 
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
+import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
@@ -20,5 +21,11 @@ class ManageLocalVaultUseCase(private val manager: IVaultsManager, private val u
         val encInfo = Encryptor.generateEncryptionInfo(key)
         val storage = manager.localVault.createStorage(encInfo)
         unlockManager.open(storage, key)
+    }
+
+    suspend fun remove(storage: IStorageInfo) {
+        when(storage) {
+            is IStorage -> manager.localVault.remove(storage)
+        }
     }
 }

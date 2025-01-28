@@ -78,6 +78,9 @@ fun LocalVaultScreen(
                     },
                     onRename = { tree, newName ->
                         viewModel.rename(tree.value, newName)
+                    },
+                    onRemove = { tree ->
+                        viewModel.remove(tree.value)
                     }
                 )
             }

@@ -23,7 +23,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     override val uuid: UUID
         get() = TODO("Not yet implemented")
 
-    private val _storages = MutableStateFlow(listOf<IStorage>())
+    private val _storages = MutableStateFlow(listOf<LocalStorage>())
     override val storages: StateFlow<List<IStorage>> = _storages
 
     private val _isAvailable = MutableStateFlow(false)
@@ -48,7 +48,7 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     private suspend fun readStorages() {
         val path = path.value
         if (path == null || !_isAvailable.value)
-            return
+            throw Exception("Not available")
 
         val dirs = path.listFiles()?.filter { it.isDirectory }
         if (dirs != null) {
@@ -84,6 +84,17 @@ class LocalVault(private val ioDispatcher: CoroutineDispatcher, context: Context
     }
 
     override suspend fun remove(storage: IStorage) = withContext(ioDispatcher) {
-        TODO("Not yet implemented")
+        val path = path.value
+        if (path == null || !_isAvailable.value)
+            throw Exception("Not available")
+
+        val curStorages = _storages.value.toMutableList()
+        val index = curStorages.indexOf(storage)
+        if(index != -1) {
+            val localStorage = curStorages[index]
+            curStorages.removeAt(index)
+            _storages.value = curStorages
+            File(localStorage.absolutePath).deleteRecursively()
+        }
     }
 }
