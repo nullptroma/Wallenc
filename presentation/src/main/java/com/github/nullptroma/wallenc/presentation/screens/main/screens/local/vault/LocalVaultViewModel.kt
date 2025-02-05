@@ -1,6 +1,7 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
 import androidx.lifecycle.viewModelScope
+import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
@@ -73,7 +74,7 @@ class LocalVaultViewModel @Inject constructor(
 
     fun createStorage() {
         viewModelScope.launch {
-            manageLocalVaultUseCase.createStorage()
+            manageLocalVaultUseCase.createStorage(EncryptKey("Hello"))
         }
     }
 

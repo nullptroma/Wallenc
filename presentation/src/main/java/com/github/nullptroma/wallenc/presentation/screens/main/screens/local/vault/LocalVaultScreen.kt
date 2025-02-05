@@ -1,6 +1,8 @@
 package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.vault
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,7 +41,7 @@ fun LocalVaultScreen(
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             items(uiState.storagesList) { listItem ->
                 StorageTree(
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier.padding(8.dp, 8.dp, 8.dp, 0.dp),
                     tree = listItem,
                     onClick = {
                         openTextEdit(it.value.uuid.toString())
@@ -51,6 +53,9 @@ fun LocalVaultScreen(
                         viewModel.remove(tree.value)
                     }
                 )
+            }
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
