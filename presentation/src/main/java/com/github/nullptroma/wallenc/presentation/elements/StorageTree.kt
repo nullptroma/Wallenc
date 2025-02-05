@@ -38,6 +38,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.presentation.R
+import com.github.nullptroma.wallenc.presentation.elements.indication.ScaleIndication
+import com.github.nullptroma.wallenc.presentation.extensions.clickableDebounced
 
 @Composable
 fun StorageTree(
@@ -54,9 +56,8 @@ fun StorageTree(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(cardShape)
-                .clickable {
+                .clickableDebounced(debounceMs = 500) {
                     onClick(tree)
-                    //viewModel.printStorageInfoToLog(cur)
                 },
             shape = cardShape,
             elevation = CardDefaults.cardElevation(
@@ -134,7 +135,10 @@ fun StorageTree(
                                     showRemoveConfirmationDiaglog = false
                                     onRemove(tree)
                                 },
-                                title = stringResource(R.string.remove_confirmation_dialog, metaInfo.name ?: "<noname>")
+                                title = stringResource(
+                                    R.string.remove_confirmation_dialog,
+                                    metaInfo.name ?: "<noname>"
+                                )
                             )
                         }
                     }
