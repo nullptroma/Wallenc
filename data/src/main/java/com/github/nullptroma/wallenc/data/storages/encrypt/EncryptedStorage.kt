@@ -1,5 +1,6 @@
 package com.github.nullptroma.wallenc.data.storages.encrypt
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.nullptroma.wallenc.data.db.app.repository.StorageMetaInfoRepository
 import com.github.nullptroma.wallenc.domain.common.impl.CommonStorageMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
@@ -13,24 +14,27 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.util.UUID
 
 class EncryptedStorage private constructor(
     private val source: IStorage,
     private val key: EncryptKey,
     ioDispatcher: CoroutineDispatcher,
-    private val metaInfoProvider: StorageMetaInfoRepository.SingleStorageMetaInfoProvider,
     override val uuid: UUID = UUID.randomUUID()
 ) : IStorage, DisposableHandle {
     private val job = Job()
     private val scope = CoroutineScope(ioDispatcher + job)
-    private val encInfo = source.metaInfo.value.encInfo ?: throw Exception("Storage is not encrypted") // TODO
+    private val encInfo =
+        source.metaInfo.value.encInfo ?: throw Exception("Storage is not encrypted") // TODO
+    private val metaInfoFileName: String = "${uuid.toString().take(8)}$STORAGE_INFO_FILE_POSTFIX"
 
     override val size: StateFlow<Long?>
-        get() = source.size
+        get() = accessor.size
     override val numberOfFiles: StateFlow<Int?>
-        get() = source.numberOfFiles
+        get() = accessor.numberOfFiles
 
     private val _metaInfo = MutableStateFlow<IStorageMetaInfo>(
         CommonStorageMetaInfo()
@@ -42,45 +46,64 @@ class EncryptedStorage private constructor(
     override val isAvailable: StateFlow<Boolean>
         get() = source.isAvailable
     override val accessor: EncryptedStorageAccessor =
-        EncryptedStorageAccessor(source.accessor, encInfo.pathIv, key, scope)
+        EncryptedStorageAccessor(source.accessor, encInfo.pathIv, key, "${uuid.toString().take(8)}$SYSTEM_HIDDEN_DIRNAME_POSTFIX", scope)
 
     private suspend fun init() {
         checkKey()
-        readMeta()
+        readMetaInfo()
     }
 
     private fun checkKey() {
-        if(!Encryptor.checkKey(key, encInfo))
+        if (!Encryptor.checkKey(key, encInfo))
             throw Exception("Incorrect key") // TODO
     }
 
-    private suspend fun readMeta() = scope.run {
-        var meta = metaInfoProvider.get()
-        if(meta == null) {
+    private suspend fun readMetaInfo() = scope.run {
+        var meta: CommonStorageMetaInfo
+        var reader: InputStream? = null
+        try {
+            reader = accessor.openReadSystemFile(metaInfoFileName)
+            meta = jackson.readValue(reader, CommonStorageMetaInfo::class.java)
+        } catch (e: Exception) {
+            // чтение не удалось, значит нужно записать файл
             meta = CommonStorageMetaInfo()
-            metaInfoProvider.set(meta)
+            updateMetaInfo(meta)
+        } finally {
+            reader?.close()
+        }
+        _metaInfo.value = meta
+    }
+
+    private suspend fun updateMetaInfo(meta: IStorageMetaInfo) = scope.run {
+        val writer = accessor.openWriteSystemFile(metaInfoFileName)
+        try {
+            jackson.writeValue(writer, meta)
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            writer.close()
         }
         _metaInfo.value = meta
     }
 
     override suspend fun rename(newName: String) = scope.run {
-        val cur = _metaInfo.value
-        val newMeta = CommonStorageMetaInfo(
-            encInfo = cur.encInfo,
-            name = newName
+        val curMeta = metaInfo.value
+        updateMetaInfo(
+            CommonStorageMetaInfo(
+                encInfo = curMeta.encInfo,
+                name = newName
+            )
         )
-        _metaInfo.value = newMeta
-        metaInfoProvider.set(newMeta)
     }
 
     override suspend fun setEncInfo(encInfo: StorageEncryptionInfo) = scope.run {
-        val cur = _metaInfo.value
-        val newMeta = CommonStorageMetaInfo(
-            encInfo = encInfo,
-            name = cur.name
+        val curMeta = metaInfo.value
+        updateMetaInfo(
+            CommonStorageMetaInfo(
+                encInfo = encInfo,
+                name = curMeta.name
+            )
         )
-        _metaInfo.value = newMeta
-        metaInfoProvider.set(newMeta)
     }
 
     override fun dispose() {
@@ -93,24 +116,25 @@ class EncryptedStorage private constructor(
             source: IStorage,
             key: EncryptKey,
             ioDispatcher: CoroutineDispatcher,
-            metaInfoProvider: StorageMetaInfoRepository.SingleStorageMetaInfoProvider,
             uuid: UUID = UUID.randomUUID()
         ): EncryptedStorage = withContext(ioDispatcher) {
             val storage = EncryptedStorage(
                 source = source,
                 key = key,
                 ioDispatcher = ioDispatcher,
-                metaInfoProvider = metaInfoProvider,
                 uuid = uuid
             )
             try {
                 storage.init()
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 storage.dispose()
                 throw e
             }
             return@withContext storage
         }
+
+        private const val SYSTEM_HIDDEN_DIRNAME_POSTFIX = "-enc-dir"
+        const val STORAGE_INFO_FILE_POSTFIX = ".enc-meta"
+        private val jackson = jacksonObjectMapper().apply { findAndRegisterModules() }
     }
 }

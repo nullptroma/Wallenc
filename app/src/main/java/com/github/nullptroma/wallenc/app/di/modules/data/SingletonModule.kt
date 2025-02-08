@@ -53,12 +53,10 @@ class SingletonModule {
     fun provideUnlockManager(
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         keyRepo: StorageKeyMapRepository,
-        metaRepo: StorageMetaInfoRepository,
         vaultsManager: IVaultsManager
     ): IUnlockManager {
         return UnlockManager(
             keymapRepository = keyRepo,
-            metaInfoRepository = metaRepo,
             ioDispatcher = ioDispatcher,
             vaultsManager = vaultsManager
         )

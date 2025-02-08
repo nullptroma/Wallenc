@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -57,6 +58,7 @@ fun StorageTree(
     onClick: (Tree<IStorageInfo>) -> Unit,
     onRename: (Tree<IStorageInfo>, String) -> Unit,
     onRemove: (Tree<IStorageInfo>) -> Unit,
+    onEncrypt: (Tree<IStorageInfo>) -> Unit,
 ) {
     val cur = tree.value
     val available by cur.isAvailable.collectAsStateWithLifecycle()
@@ -66,7 +68,9 @@ fun StorageTree(
     val borderColor =
         if (cur.isVirtualStorage) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
     Column(modifier) {
-        Box(modifier = Modifier.height(IntrinsicSize.Min).zIndex(100f)) {
+        Box(modifier = Modifier
+            .height(IntrinsicSize.Min)
+            .zIndex(100f)) {
             val interactionSource = remember { MutableInteractionSource() }
             Box(
                 modifier = Modifier
@@ -171,6 +175,9 @@ fun StorageTree(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
+                        Button(onClick = { onEncrypt(tree) }, enabled = metaInfo.encInfo == null) {
+                            Text("Encrypt")
+                        }
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -190,7 +197,16 @@ fun StorageTree(
             }
         }
         for (i in tree.children ?: listOf()) {
-            StorageTree(Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp).offset(y = (-4).dp), i, onClick, onRename, onRemove)
+            StorageTree(
+                Modifier
+                    .padding(16.dp, 0.dp, 0.dp, 0.dp)
+                    .offset(y = (-4).dp),
+                i,
+                onClick,
+                onRename,
+                onRemove,
+                onEncrypt
+            )
         }
     }
 }

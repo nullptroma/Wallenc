@@ -11,6 +11,7 @@ import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -22,7 +23,6 @@ import java.util.UUID
 
 class UnlockManager(
     private val keymapRepository: StorageKeyMapRepository,
-    private val metaInfoRepository: StorageMetaInfoRepository,
     private val ioDispatcher: CoroutineDispatcher,
     vaultsManager: IVaultsManager
 ) : IUnlockManager {
@@ -36,23 +36,32 @@ class UnlockManager(
             vaultsManager.allStorages.collectLatest {
                 mutex.lock()
                 val allKeys = keymapRepository.getAll()
+                val usedKeys = mutableListOf<StorageKeyMap>()
                 val keysToRemove = mutableListOf<StorageKeyMap>()
-                val allStorages = it.associateBy({ it.uuid }, { it })
+                val allStorages = it.toMutableList()
                 val map = _openedStorages.value?.toMutableMap() ?: mutableMapOf()
-                for(keymap in allKeys) {
-                    if(map.contains(keymap.sourceUuid))
+                while(allStorages.size > 0) {
+                    val storage = allStorages[allStorages.size-1]
+                    val key = allKeys.find { key -> key.sourceUuid == storage.uuid }
+                    if(key == null) {
+                        allStorages.removeAt(allStorages.size - 1)
                         continue
+                    }
                     try {
-                        val storage = allStorages[keymap.sourceUuid] ?: continue
-                        val encStorage = createEncryptedStorage(storage, keymap.key, keymap.destUuid)
+                        val encStorage = createEncryptedStorage(storage, key.key, key.destUuid)
                         map[storage.uuid] = encStorage
+                        usedKeys.add(key)
+                        allStorages.removeAt(allStorages.size - 1)
+                        allStorages.add(encStorage)
                     }
                     catch (_: Exception) {
-                        keysToRemove.add(keymap)
+                        // ключ не подошёл
+                        keysToRemove.add(key)
+                        allStorages.removeAt(allStorages.size - 1)
                     }
                 }
-                _openedStorages.value = map
                 keymapRepository.delete(*keysToRemove.toTypedArray()) // удалить мёртвые ключи
+                _openedStorages.value = map.toMap()
                 mutex.unlock()
             }
         }
@@ -63,7 +72,6 @@ class UnlockManager(
             source = storage,
             key = key,
             ioDispatcher = ioDispatcher,
-            metaInfoProvider = metaInfoRepository.createSingleStorageProvider(uuid),
             uuid = uuid
         )
     }
@@ -71,7 +79,7 @@ class UnlockManager(
     override suspend fun open(
         storage: IStorage,
         key: EncryptKey
-    ) = withContext(ioDispatcher) {
+    ): EncryptedStorage = withContext(ioDispatcher) {
         mutex.lock()
         val encInfo = storage.metaInfo.value.encInfo ?: throw Exception("EncInfo is null") // TODO
         if (!Encryptor.checkKey(key, encInfo))
@@ -92,6 +100,7 @@ class UnlockManager(
         _openedStorages.value = opened
         keymapRepository.add(keymap)
         mutex.unlock()
+        return@withContext encStorage
     }
 
     override suspend fun close(storage: IStorage) = withContext(ioDispatcher) {

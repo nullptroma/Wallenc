@@ -4,6 +4,7 @@ import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
 import com.github.nullptroma.wallenc.domain.usecases.GetOpenedStoragesUseCase
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
+import com.github.nullptroma.wallenc.domain.usecases.ManageStoragesEncryptionUseCase
 import com.github.nullptroma.wallenc.domain.usecases.RenameStorageUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
 import dagger.Module
@@ -37,5 +38,11 @@ class UseCasesModule {
     @Singleton
     fun provideRenameStorageUseCase(): RenameStorageUseCase {
         return RenameStorageUseCase()
+    }
+
+    @Provides
+    @Singleton
+    fun provideManageStoragesEncryptionUseCase(unlockManager: IUnlockManager): ManageStoragesEncryptionUseCase {
+        return ManageStoragesEncryptionUseCase(unlockManager)
     }
 }

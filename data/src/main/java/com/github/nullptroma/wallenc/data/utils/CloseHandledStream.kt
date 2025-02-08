@@ -5,6 +5,7 @@ import java.io.OutputStream
 
 private class CloseHandledOutputStream(
     private val stream: OutputStream,
+    private val onClosing: () -> Unit,
     private val onClose: () -> Unit
 ) : OutputStream() {
 
@@ -25,6 +26,7 @@ private class CloseHandledOutputStream(
     }
 
     override fun close() {
+        onClosing()
         try {
             stream.close()
         } finally {
@@ -35,6 +37,7 @@ private class CloseHandledOutputStream(
 
 private class CloseHandledInputStream(
     private val stream: InputStream,
+    private val onClosing: () -> Unit,
     private val onClose: () -> Unit
 ) : InputStream() {
 
@@ -59,6 +62,7 @@ private class CloseHandledInputStream(
     }
 
     override fun close() {
+        onClosing()
         try {
             stream.close()
         } finally {
@@ -81,12 +85,20 @@ private class CloseHandledInputStream(
 
 class CloseHandledStreamExtension {
     companion object {
-        fun OutputStream.onClose(callback: ()->Unit): OutputStream {
-            return CloseHandledOutputStream(this, callback)
+        fun OutputStream.onClosed(callback: ()->Unit): OutputStream {
+            return CloseHandledOutputStream(this, {}, callback)
         }
 
-        fun InputStream.onClose(callback: ()->Unit): InputStream {
-            return CloseHandledInputStream(this, callback)
+        fun InputStream.onClosed(callback: ()->Unit): InputStream {
+            return CloseHandledInputStream(this, {}, callback)
+        }
+
+        fun OutputStream.onClosing(callback: ()->Unit): OutputStream {
+            return CloseHandledOutputStream(this, callback, {})
+        }
+
+        fun InputStream.onClosing(callback: ()->Unit): InputStream {
+            return CloseHandledInputStream(this, callback, {})
         }
     }
 }

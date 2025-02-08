@@ -51,6 +51,9 @@ fun LocalVaultScreen(
                     },
                     onRemove = { tree ->
                         viewModel.remove(tree.value)
+                    },
+                    onEncrypt = { tree ->
+                        viewModel.enableEncryptionAndOpenStorage(tree.value)
                     }
                 )
             }

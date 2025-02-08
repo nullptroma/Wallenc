@@ -17,12 +17,6 @@ class ManageLocalVaultUseCase(private val manager: IVaultsManager, private val u
         manager.localVault.createStorage()
     }
 
-    suspend fun createStorage(key: EncryptKey) {
-        val encInfo = Encryptor.generateEncryptionInfo(key)
-        val storage = manager.localVault.createStorage(encInfo)
-        unlockManager.open(storage, key)
-    }
-
     suspend fun remove(storage: IStorageInfo) {
         when(storage) {
             is IStorage -> manager.localVault.remove(storage)

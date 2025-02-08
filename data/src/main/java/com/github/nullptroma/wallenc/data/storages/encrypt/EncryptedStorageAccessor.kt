@@ -1,6 +1,7 @@
 package com.github.nullptroma.wallenc.data.storages.encrypt
 
-import android.util.Log
+import com.github.nullptroma.wallenc.data.utils.CloseHandledStreamExtension.Companion.onClosed
+import com.github.nullptroma.wallenc.data.utils.CloseHandledStreamExtension.Companion.onClosing
 import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
 import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
@@ -16,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,12 +29,17 @@ import kotlin.io.path.pathString
 
 class EncryptedStorageAccessor(
     private val source: IStorageAccessor,
-    pathIv: ByteArray,
+    pathIv: ByteArray?,
     key: EncryptKey,
+    private val systemHiddenDirName: String,
     private val scope: CoroutineScope
 ) : IStorageAccessor, DisposableHandle {
-    override val size: StateFlow<Long?> = source.size
-    override val numberOfFiles: StateFlow<Int?> = source.numberOfFiles
+    private val _size = MutableStateFlow<Long?>(null)
+    override val size: StateFlow<Long?> = _size
+
+    private val _numberOfFiles = MutableStateFlow<Int?>(null)
+    override val numberOfFiles: StateFlow<Int?> = _numberOfFiles
+
     override val isAvailable: StateFlow<Boolean> = source.isAvailable
 
     private val _filesUpdates = MutableSharedFlow<DataPackage<List<IFile>>>()
@@ -42,44 +49,68 @@ class EncryptedStorageAccessor(
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
     private val dataEncryptor = Encryptor(key.toAesKey())
-    private val pathEncryptor = EncryptorWithStaticIv(key.toAesKey(), pathIv)
+    private val pathEncryptor: EncryptorWithStaticIv? = if(pathIv != null) EncryptorWithStaticIv(key.toAesKey(), pathIv) else null
+
+    private var systemHiddenFiles: List<IFile>? = null
+    private var systemHiddenFilesIsActual = false
 
     init {
         collectSourceState()
-
-        for(i in 1..5) {
-            val orig = "/hello/path/test.txt"
-            val enc = encryptPath(orig)
-            val dec = decryptPath(enc)
-
-            Log.d("MyTag", "Path $orig to $enc to $dec")
-        }
     }
-
     private fun collectSourceState() {
         scope.launch {
             launch {
                 source.filesUpdates.collect {
-                    val files = it.data.map(::decryptEntity)
-                    _filesUpdates.emit(DataPackage(
-                        data = files,
-                        isLoading = it.isLoading,
-                        isError = it.isError
-                    ))
+                    val files = it.data.map(::decryptEntity).filterSystemHiddenFiles()
+                    _filesUpdates.emit(
+                        DataPackage(
+                            data = files,
+                            isLoading = it.isLoading,
+                            isError = it.isError
+                        )
+                    )
                 }
             }
 
             launch {
                 source.dirsUpdates.collect {
-                    val dirs = it.data.map(::decryptEntity)
-                    _dirsUpdates.emit(DataPackage(
-                        data = dirs,
-                        isLoading = it.isLoading,
-                        isError = it.isError
-                    ))
+                    val dirs = it.data.map(::decryptEntity).filterSystemHiddenDirs()
+                    _dirsUpdates.emit(
+                        DataPackage(
+                            data = dirs,
+                            isLoading = it.isLoading,
+                            isError = it.isError
+                        )
+                    )
+                }
+            }
+
+            launch {
+                source.numberOfFiles.collect {
+                    if(it == null)
+                        _numberOfFiles.value = null
+                    else
+                    {
+                        _numberOfFiles.value = it - getSystemFiles().size
+                    }
+                }
+            }
+
+            launch {
+                source.size.collect { sourceSize ->
+                    if(sourceSize == null)
+                        _size.value = null
+                    else
+                    {
+                        _size.value = sourceSize - getSystemFiles().sumOf { it.metaInfo.size }
+                    }
                 }
             }
         }
+    }
+
+    private suspend fun getSystemFiles(): List<IFile> {
+        return source.getFiles(encryptPath(systemHiddenDirName))
     }
 
     private fun encryptEntity(file: IFile): IFile {
@@ -119,35 +150,40 @@ class EncryptedStorageAccessor(
     }
 
     private fun encryptPath(pathStr: String): String {
+        if(pathEncryptor == null)
+            return pathStr
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
             segments.add(pathEncryptor.encryptString(segment.pathString))
-        val res = Path("/",*(segments.toTypedArray()))
+        val res = Path("/", *(segments.toTypedArray()))
         return res.pathString
     }
 
     private fun decryptPath(pathStr: String): String {
+        if(pathEncryptor == null)
+            return pathStr
+
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
             segments.add(pathEncryptor.decryptString(segment.pathString))
-        val res = Path("/",*(segments.toTypedArray()))
+        val res = Path("/", *(segments.toTypedArray()))
         return res.pathString
     }
 
     override suspend fun getAllFiles(): List<IFile> {
-        return source.getAllFiles().map(::decryptEntity)
+        return source.getAllFiles().map(::decryptEntity).filterSystemHiddenFiles()
     }
 
     override suspend fun getFiles(path: String): List<IFile> {
-        return source.getFiles(encryptPath(path)).map(::decryptEntity)
+        return source.getFiles(encryptPath(path)).map(::decryptEntity).filterSystemHiddenFiles()
     }
 
     override fun getFilesFlow(path: String): Flow<DataPackage<List<IFile>>> {
         val flow = source.getFilesFlow(encryptPath(path)).map {
             DataPackage(
-                data = it.data.map(::decryptEntity),
+                data = it.data.map(::decryptEntity).filterSystemHiddenFiles(),
                 isLoading = it.isLoading,
                 isError = it.isError
             )
@@ -156,17 +192,18 @@ class EncryptedStorageAccessor(
     }
 
     override suspend fun getAllDirs(): List<IDirectory> {
-        return source.getAllDirs().map(::decryptEntity)
+        return source.getAllDirs().map(::decryptEntity).filterSystemHiddenDirs()
     }
 
     override suspend fun getDirs(path: String): List<IDirectory> {
-        return source.getDirs(encryptPath(path)).map(::decryptEntity)
+        return source.getDirs(encryptPath(path)).map(::decryptEntity).filterSystemHiddenDirs()
     }
 
     override fun getDirsFlow(path: String): Flow<DataPackage<List<IDirectory>>> {
         val flow = source.getDirsFlow(encryptPath(path)).map {
             DataPackage(
-                data = it.data.map(::decryptEntity),
+                // включать все папки, кроме системной
+                data = it.data.map(::decryptEntity).filterSystemHiddenDirs(),
                 isLoading = it.isLoading,
                 isError = it.isError
             )
@@ -218,6 +255,35 @@ class EncryptedStorageAccessor(
 
     override fun dispose() {
         dataEncryptor.dispose()
+    }
+
+    suspend fun openReadSystemFile(name: String): InputStream = scope.run {
+        val path = Path(systemHiddenDirName, name).pathString
+        return@run openRead(path)
+    }
+
+    suspend fun openWriteSystemFile(name: String): OutputStream = scope.run {
+        val path = Path(systemHiddenDirName, name).pathString
+        systemHiddenFilesIsActual = false
+        return@run openWrite(path).onClosing {
+            systemHiddenFilesIsActual = false
+        }
+    }
+
+    private fun Iterable<IFile>.filterSystemHiddenFiles(): List<IFile> {
+        return this.filter { file ->
+            !file.metaInfo.path.contains(
+                systemHiddenDirName
+            )
+        }
+    }
+
+    private fun Iterable<IDirectory>.filterSystemHiddenDirs(): List<IDirectory> {
+        return this.filter { dir ->
+            !dir.metaInfo.path.contains(
+                systemHiddenDirName
+            )
+        }
     }
 
 }

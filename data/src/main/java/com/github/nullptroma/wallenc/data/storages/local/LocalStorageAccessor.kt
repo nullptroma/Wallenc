@@ -3,7 +3,7 @@ package com.github.nullptroma.wallenc.data.storages.local
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.nullptroma.wallenc.data.utils.CloseHandledStreamExtension.Companion.onClose
+import com.github.nullptroma.wallenc.data.utils.CloseHandledStreamExtension.Companion.onClosed
 import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
 import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
@@ -433,6 +433,8 @@ class LocalStorageAccessor(
         if (file.exists() && file.isDirectory)  {
             throw Exception("Что то пошло не так") // TODO
         } else if(!file.exists()) {
+            val parent = Path(storagePath).parent
+            createDir(parent.pathString)
             file.createNewFile()
 
             val cur = _numberOfFiles.value
@@ -441,7 +443,7 @@ class LocalStorageAccessor(
 
         val pair = LocalStorageFilePair.from(_filesystemBasePath, file)
             ?: throw Exception("Что то пошло не так") // TODO
-        val newMeta = pair.meta.copy(lastModified = Clock.systemUTC().instant())
+        val newMeta = pair.meta.copy(lastModified = Clock.systemUTC().instant(), size = Files.size(pair.file.toPath()))
         writeMeta(pair.metaFile, newMeta)
         _filesUpdates.emit(
             DataPage(
@@ -503,9 +505,10 @@ class LocalStorageAccessor(
         touchFile(path)
         val pair = LocalStorageFilePair.from(_filesystemBasePath, path)
             ?: throw Exception("Файла нет") // TODO
-        return@withContext pair.file.outputStream().onClose {
+        return@withContext pair.file.outputStream().onClosed {
             CoroutineScope(ioDispatcher).launch {
                 touchFile(path)
+                scanSizeAndNumOfFiles()
             }
         }
     }

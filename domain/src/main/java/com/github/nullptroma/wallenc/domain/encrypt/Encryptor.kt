@@ -74,7 +74,7 @@ class Encryptor(private var secretKey: SecretKey) : DisposableHandle {
     }
 
     override fun dispose() {
-        secretKey.destroy()
+        //secretKey.destroy()
     }
 
     companion object {
@@ -83,13 +83,13 @@ class Encryptor(private var secretKey: SecretKey) : DisposableHandle {
         private const val TEST_DATA_LEN = 512
 
         @OptIn(ExperimentalEncodingApi::class)
-        fun generateEncryptionInfo(key: EncryptKey) : StorageEncryptionInfo {
+        fun generateEncryptionInfo(key: EncryptKey, encryptPath: Boolean) : StorageEncryptionInfo {
             val encryptor = Encryptor(key.toAesKey())
             val testData = ByteArray(TEST_DATA_LEN)
             val encryptedData = encryptor.encryptBytes(testData)
             return StorageEncryptionInfo(
                 encryptedTestData = Base64.Default.encode(encryptedData),
-                pathIv = Random.nextBytes(IV_LEN)
+                pathIv = if(encryptPath) Random.nextBytes(IV_LEN) else null
             )
         }
 

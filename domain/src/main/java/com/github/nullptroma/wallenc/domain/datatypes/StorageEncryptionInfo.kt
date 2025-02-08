@@ -2,7 +2,7 @@ package com.github.nullptroma.wallenc.domain.datatypes
 
 data class StorageEncryptionInfo(
     val encryptedTestData: String,
-    val pathIv: ByteArray
+    val pathIv: ByteArray?
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

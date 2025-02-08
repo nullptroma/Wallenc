@@ -9,10 +9,11 @@ import com.github.nullptroma.wallenc.domain.interfaces.ILogger
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 import com.github.nullptroma.wallenc.domain.usecases.GetOpenedStoragesUseCase
 import com.github.nullptroma.wallenc.domain.usecases.ManageLocalVaultUseCase
+import com.github.nullptroma.wallenc.domain.usecases.ManageStoragesEncryptionUseCase
 import com.github.nullptroma.wallenc.domain.usecases.RenameStorageUseCase
 import com.github.nullptroma.wallenc.domain.usecases.StorageFileManagementUseCase
-import com.github.nullptroma.wallenc.presentation.extensions.toPrintable
 import com.github.nullptroma.wallenc.presentation.ViewModelBase
+import com.github.nullptroma.wallenc.presentation.extensions.toPrintable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -25,6 +26,7 @@ class LocalVaultViewModel @Inject constructor(
     private val manageLocalVaultUseCase: ManageLocalVaultUseCase,
     private val getOpenedStoragesUseCase: GetOpenedStoragesUseCase,
     private val storageFileManagementUseCase: StorageFileManagementUseCase,
+    private val manageStoragesEncryptionUseCase: ManageStoragesEncryptionUseCase,
     private val renameStorageUseCase: RenameStorageUseCase,
     private val logger: ILogger
 ) : ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
@@ -48,6 +50,11 @@ class LocalVaultViewModel @Inject constructor(
                     storagesList = it
                 )
                 updateState(newState)
+            }
+        }
+        viewModelScope.launch {
+            getOpenedStoragesUseCase.openedStorages.collectLatest {
+                logger.debug("ViewModel", "Collected opened: ${it?.size}")
             }
         }
     }
@@ -74,7 +81,24 @@ class LocalVaultViewModel @Inject constructor(
 
     fun createStorage() {
         viewModelScope.launch {
-            manageLocalVaultUseCase.createStorage(EncryptKey("Hello"))
+            manageLocalVaultUseCase.createStorage()
+        }
+    }
+
+    private val runningStorages = mutableSetOf<IStorageInfo>()
+    fun enableEncryptionAndOpenStorage(storage: IStorageInfo) {
+        if(runningStorages.contains(storage))
+            return
+        runningStorages.add(storage)
+        val key = EncryptKey("Hello")
+        viewModelScope.launch {
+            try {
+                manageStoragesEncryptionUseCase.enableEncryption(storage, key, false)
+                manageStoragesEncryptionUseCase.openStorage(storage, key)
+            }
+            finally {
+                runningStorages.remove(storage)
+            }
         }
     }
 
