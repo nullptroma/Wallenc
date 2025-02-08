@@ -83,7 +83,7 @@ class Encryptor(private var secretKey: SecretKey) : DisposableHandle {
         private const val TEST_DATA_LEN = 512
 
         @OptIn(ExperimentalEncodingApi::class)
-        fun generateEncryptionInfo(key: EncryptKey, encryptPath: Boolean) : StorageEncryptionInfo {
+        fun generateEncryptionInfo(key: EncryptKey, encryptPath: Boolean = true) : StorageEncryptionInfo {
             val encryptor = Encryptor(key.toAesKey())
             val testData = ByteArray(TEST_DATA_LEN)
             val encryptedData = encryptor.encryptBytes(testData)
