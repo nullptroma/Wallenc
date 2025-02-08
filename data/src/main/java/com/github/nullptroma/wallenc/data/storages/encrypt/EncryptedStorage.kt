@@ -4,10 +4,13 @@ import com.github.nullptroma.wallenc.data.db.app.repository.StorageMetaInfoRepos
 import com.github.nullptroma.wallenc.domain.common.impl.CommonStorageMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
+import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageMetaInfo
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -15,11 +18,15 @@ import java.util.UUID
 
 class EncryptedStorage private constructor(
     private val source: IStorage,
-    key: EncryptKey,
-    private val ioDispatcher: CoroutineDispatcher,
+    private val key: EncryptKey,
+    ioDispatcher: CoroutineDispatcher,
     private val metaInfoProvider: StorageMetaInfoRepository.SingleStorageMetaInfoProvider,
     override val uuid: UUID = UUID.randomUUID()
 ) : IStorage, DisposableHandle {
+    private val job = Job()
+    private val scope = CoroutineScope(ioDispatcher + job)
+    private val encInfo = source.metaInfo.value.encInfo ?: throw Exception("Storage is not encrypted") // TODO
+
     override val size: StateFlow<Long?>
         get() = source.size
     override val numberOfFiles: StateFlow<Int?>
@@ -35,13 +42,19 @@ class EncryptedStorage private constructor(
     override val isAvailable: StateFlow<Boolean>
         get() = source.isAvailable
     override val accessor: EncryptedStorageAccessor =
-        EncryptedStorageAccessor(source.accessor, key, ioDispatcher)
+        EncryptedStorageAccessor(source.accessor, encInfo.pathIv, key, scope)
 
     private suspend fun init() {
+        checkKey()
         readMeta()
     }
 
-    private suspend fun readMeta() = withContext(ioDispatcher) {
+    private fun checkKey() {
+        if(!Encryptor.checkKey(key, encInfo))
+            throw Exception("Incorrect key") // TODO
+    }
+
+    private suspend fun readMeta() = scope.run {
         var meta = metaInfoProvider.get()
         if(meta == null) {
             meta = CommonStorageMetaInfo()
@@ -50,7 +63,7 @@ class EncryptedStorage private constructor(
         _metaInfo.value = meta
     }
 
-    override suspend fun rename(newName: String) = withContext(ioDispatcher) {
+    override suspend fun rename(newName: String) = scope.run {
         val cur = _metaInfo.value
         val newMeta = CommonStorageMetaInfo(
             encInfo = cur.encInfo,
@@ -60,7 +73,7 @@ class EncryptedStorage private constructor(
         metaInfoProvider.set(newMeta)
     }
 
-    override suspend fun setEncInfo(encInfo: StorageEncryptionInfo) = withContext(ioDispatcher) {
+    override suspend fun setEncInfo(encInfo: StorageEncryptionInfo) = scope.run {
         val cur = _metaInfo.value
         val newMeta = CommonStorageMetaInfo(
             encInfo = encInfo,
@@ -72,6 +85,7 @@ class EncryptedStorage private constructor(
 
     override fun dispose() {
         accessor.dispose()
+        job.cancel()
     }
 
     companion object {
@@ -89,7 +103,13 @@ class EncryptedStorage private constructor(
                 metaInfoProvider = metaInfoProvider,
                 uuid = uuid
             )
-            storage.init()
+            try {
+                storage.init()
+            }
+            catch (e: Exception) {
+                storage.dispose()
+                throw e
+            }
             return@withContext storage
         }
     }

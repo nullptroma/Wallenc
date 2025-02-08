@@ -11,13 +11,13 @@ class StorageKeyMapRepository(
     private val ioDispatcher: CoroutineDispatcher
 ) {
     suspend fun getAll() = withContext(ioDispatcher) { dao.getAll().map { it.toModel() } }
-    suspend fun add(keymap: StorageKeyMap) = withContext(ioDispatcher)  {
-        val dbModel = DbStorageKeyMap.fromModel(keymap)
-        dao.add(dbModel)
+    suspend fun add(vararg keymaps: StorageKeyMap) = withContext(ioDispatcher)  {
+        val dbModels = keymaps.map { DbStorageKeyMap.fromModel(it) }
+        dao.add(*dbModels.toTypedArray())
     }
 
-    suspend fun delete(keymap: StorageKeyMap) = withContext(ioDispatcher)  {
-        val dbModel = DbStorageKeyMap.fromModel(keymap)
-        dao.delete(dbModel)
+    suspend fun delete(vararg keymaps: StorageKeyMap) = withContext(ioDispatcher)  {
+        val dbModels = keymaps.map { DbStorageKeyMap.fromModel(it) }
+        dao.delete(*dbModels.toTypedArray())
     }
 }

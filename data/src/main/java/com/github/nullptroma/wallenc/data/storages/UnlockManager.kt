@@ -36,16 +36,23 @@ class UnlockManager(
             vaultsManager.allStorages.collectLatest {
                 mutex.lock()
                 val allKeys = keymapRepository.getAll()
+                val keysToRemove = mutableListOf<StorageKeyMap>()
                 val allStorages = it.associateBy({ it.uuid }, { it })
                 val map = _openedStorages.value?.toMutableMap() ?: mutableMapOf()
                 for(keymap in allKeys) {
                     if(map.contains(keymap.sourceUuid))
                         continue
-                    val storage = allStorages[keymap.sourceUuid] ?: continue
-                    val encStorage = createEncryptedStorage(storage, keymap.key, keymap.destUuid)
-                    map[storage.uuid] = encStorage
+                    try {
+                        val storage = allStorages[keymap.sourceUuid] ?: continue
+                        val encStorage = createEncryptedStorage(storage, keymap.key, keymap.destUuid)
+                        map[storage.uuid] = encStorage
+                    }
+                    catch (_: Exception) {
+                        keysToRemove.add(keymap)
+                    }
                 }
                 _openedStorages.value = map
+                keymapRepository.delete(*keysToRemove.toTypedArray()) // удалить мёртвые ключи
                 mutex.unlock()
             }
         }

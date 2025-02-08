@@ -1,19 +1,19 @@
 package com.github.nullptroma.wallenc.data.storages.encrypt
 
+import android.util.Log
 import com.github.nullptroma.wallenc.domain.common.impl.CommonDirectory
 import com.github.nullptroma.wallenc.domain.common.impl.CommonFile
 import com.github.nullptroma.wallenc.domain.common.impl.CommonMetaInfo
 import com.github.nullptroma.wallenc.domain.datatypes.DataPackage
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
+import com.github.nullptroma.wallenc.domain.encrypt.EncryptorWithStaticIv
 import com.github.nullptroma.wallenc.domain.interfaces.IDirectory
 import com.github.nullptroma.wallenc.domain.interfaces.IFile
 import com.github.nullptroma.wallenc.domain.interfaces.IMetaInfo
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageAccessor
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,12 +27,10 @@ import kotlin.io.path.pathString
 
 class EncryptedStorageAccessor(
     private val source: IStorageAccessor,
+    pathIv: ByteArray,
     key: EncryptKey,
-    ioDispatcher: CoroutineDispatcher
+    private val scope: CoroutineScope
 ) : IStorageAccessor, DisposableHandle {
-    private val job = Job()
-    private val scope = CoroutineScope(ioDispatcher + job)
-
     override val size: StateFlow<Long?> = source.size
     override val numberOfFiles: StateFlow<Int?> = source.numberOfFiles
     override val isAvailable: StateFlow<Boolean> = source.isAvailable
@@ -43,10 +41,19 @@ class EncryptedStorageAccessor(
     private val _dirsUpdates = MutableSharedFlow<DataPackage<List<IDirectory>>>()
     override val dirsUpdates: SharedFlow<DataPackage<List<IDirectory>>> = _dirsUpdates
 
-    private val encryptor = Encryptor(key.toAesKey())
+    private val dataEncryptor = Encryptor(key.toAesKey())
+    private val pathEncryptor = EncryptorWithStaticIv(key.toAesKey(), pathIv)
 
     init {
         collectSourceState()
+
+        for(i in 1..5) {
+            val orig = "/hello/path/test.txt"
+            val enc = encryptPath(orig)
+            val dec = decryptPath(enc)
+
+            Log.d("MyTag", "Path $orig to $enc to $dec")
+        }
     }
 
     private fun collectSourceState() {
@@ -63,7 +70,6 @@ class EncryptedStorageAccessor(
             }
 
             launch {
-
                 source.dirsUpdates.collect {
                     val dirs = it.data.map(::decryptEntity)
                     _dirsUpdates.emit(DataPackage(
@@ -116,7 +122,7 @@ class EncryptedStorageAccessor(
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(encryptor.encryptString(segment.pathString))
+            segments.add(pathEncryptor.encryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -125,7 +131,7 @@ class EncryptedStorageAccessor(
         val path = Path(pathStr)
         val segments = mutableListOf<String>()
         for (segment in path)
-            segments.add(encryptor.decryptString(segment.pathString))
+            segments.add(pathEncryptor.decryptString(segment.pathString))
         val res = Path("/",*(segments.toTypedArray()))
         return res.pathString
     }
@@ -198,12 +204,12 @@ class EncryptedStorageAccessor(
 
     override suspend fun openWrite(path: String): OutputStream {
         val stream = source.openWrite(encryptPath(path))
-        return encryptor.encryptStream(stream)
+        return dataEncryptor.encryptStream(stream)
     }
 
     override suspend fun openRead(path: String): InputStream {
         val stream = source.openRead(encryptPath(path))
-        return encryptor.decryptStream(stream)
+        return dataEncryptor.decryptStream(stream)
     }
 
     override suspend fun moveToTrash(path: String) {
@@ -211,8 +217,7 @@ class EncryptedStorageAccessor(
     }
 
     override fun dispose() {
-        job.cancel()
-        encryptor.dispose()
+        dataEncryptor.dispose()
     }
 
 }
