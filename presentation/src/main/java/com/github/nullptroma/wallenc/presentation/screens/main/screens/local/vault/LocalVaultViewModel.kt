@@ -29,15 +29,43 @@ class LocalVaultViewModel @Inject constructor(
     private val manageStoragesEncryptionUseCase: ManageStoragesEncryptionUseCase,
     private val renameStorageUseCase: RenameStorageUseCase,
     private val logger: ILogger
-) : ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf())) {
+) : ViewModelBase<LocalVaultScreenState>(LocalVaultScreenState(listOf(), true)) {
+    private var _taskCount: Int = 0
+    private var tasksCount
+        get() = _taskCount
+        set(value) {
+            _taskCount = value
+            updateStateLoading()
+        }
+
+    private var _isLoading: Boolean = false
+    private var isLoading
+        get() = _isLoading
+        set(value) {
+            _isLoading = value
+            updateStateLoading()
+        }
+
     init {
+        collectFlows()
+    }
+
+    private fun updateStateLoading() {
+        updateState(state.value.copy(
+            isLoading = this.isLoading || this.tasksCount > 0
+        ))
+    }
+
+    private fun collectFlows() {
         viewModelScope.launch {
             manageLocalVaultUseCase.localStorages.combine(getOpenedStoragesUseCase.openedStorages) { local, opened ->
+                if(local == null || opened == null)
+                    return@combine null
                 val list = mutableListOf<Tree<IStorageInfo>>()
                 for (storage in local) {
                     var tree = Tree(storage)
                     list.add(tree)
-                    while(opened != null && opened.containsKey(tree.value.uuid)) {
+                    while(opened.containsKey(tree.value.uuid)) {
                         val child = opened.getValue(tree.value.uuid)
                         val nextTree = Tree(child)
                         tree.children = listOf(nextTree)
@@ -46,15 +74,11 @@ class LocalVaultViewModel @Inject constructor(
                 }
                 return@combine list
             }.collectLatest {
+                isLoading = it == null
                 val newState = state.value.copy(
-                    storagesList = it
+                    storagesList = it ?: listOf()
                 )
                 updateState(newState)
-            }
-        }
-        viewModelScope.launch {
-            getOpenedStoragesUseCase.openedStorages.collectLatest {
-                logger.debug("ViewModel", "Collected opened: ${it?.size}")
             }
         }
     }
@@ -80,8 +104,10 @@ class LocalVaultViewModel @Inject constructor(
     }
 
     fun createStorage() {
+        tasksCount++
         viewModelScope.launch {
             manageLocalVaultUseCase.createStorage()
+            tasksCount--
         }
     }
 
@@ -89,6 +115,7 @@ class LocalVaultViewModel @Inject constructor(
     fun enableEncryptionAndOpenStorage(storage: IStorageInfo) {
         if(runningStorages.contains(storage))
             return
+        tasksCount++
         runningStorages.add(storage)
         val key = EncryptKey("Hello")
         viewModelScope.launch {
@@ -98,6 +125,7 @@ class LocalVaultViewModel @Inject constructor(
             }
             finally {
                 runningStorages.remove(storage)
+                tasksCount--
             }
         }
     }

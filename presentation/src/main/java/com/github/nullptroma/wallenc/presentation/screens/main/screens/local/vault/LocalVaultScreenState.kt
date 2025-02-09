@@ -3,4 +3,4 @@ package com.github.nullptroma.wallenc.presentation.screens.main.screens.local.va
 import com.github.nullptroma.wallenc.domain.datatypes.Tree
 import com.github.nullptroma.wallenc.domain.interfaces.IStorageInfo
 
-data class LocalVaultScreenState(val storagesList: List<Tree<IStorageInfo>>)
+data class LocalVaultScreenState(val storagesList: List<Tree<IStorageInfo>>, val isLoading: Boolean)

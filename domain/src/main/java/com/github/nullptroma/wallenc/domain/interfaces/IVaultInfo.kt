@@ -7,7 +7,7 @@ import java.util.UUID
 sealed interface IVaultInfo {
     val type: VaultType
     val uuid: UUID
-    val storages: StateFlow<List<IStorageInfo>>
+    val storages: StateFlow<List<IStorageInfo>?>
     val isAvailable: StateFlow<Boolean>
     val totalSpace: StateFlow<Int?>
     val availableSpace: StateFlow<Int?>

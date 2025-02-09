@@ -46,7 +46,13 @@ class EncryptedStorage private constructor(
     override val isAvailable: StateFlow<Boolean>
         get() = source.isAvailable
     override val accessor: EncryptedStorageAccessor =
-        EncryptedStorageAccessor(source.accessor, encInfo.pathIv, key, "${uuid.toString().take(8)}$SYSTEM_HIDDEN_DIRNAME_POSTFIX", scope)
+        EncryptedStorageAccessor(
+            source = source.accessor,
+            pathIv = encInfo.pathIv,
+            key = key,
+            systemHiddenDirName = "${uuid.toString().take(8)}$SYSTEM_HIDDEN_DIRNAME_POSTFIX",
+            scope = scope
+        )
 
     private suspend fun init() {
         checkKey()

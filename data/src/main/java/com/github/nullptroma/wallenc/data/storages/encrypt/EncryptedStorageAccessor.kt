@@ -51,7 +51,6 @@ class EncryptedStorageAccessor(
     private val dataEncryptor = Encryptor(key.toAesKey())
     private val pathEncryptor: EncryptorWithStaticIv? = if(pathIv != null) EncryptorWithStaticIv(key.toAesKey(), pathIv) else null
 
-    private var systemHiddenFiles: List<IFile>? = null
     private var systemHiddenFilesIsActual = false
 
     init {

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
 class ManageLocalVaultUseCase(private val manager: IVaultsManager, private val unlockManager: IUnlockManager) {
-    val localStorages: StateFlow<List<IStorageInfo>>
+    val localStorages: StateFlow<List<IStorageInfo>?>
         get() = manager.localVault.storages
 
     suspend fun createStorage() {
