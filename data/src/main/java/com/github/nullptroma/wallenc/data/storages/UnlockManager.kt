@@ -5,7 +5,9 @@ import com.github.nullptroma.wallenc.data.db.app.repository.StorageMetaInfoRepos
 import com.github.nullptroma.wallenc.data.model.StorageKeyMap
 import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import com.github.nullptroma.wallenc.data.storages.encrypt.EncryptedStorage
+import com.github.nullptroma.wallenc.domain.datatypes.StorageEncryptionInfo
 import com.github.nullptroma.wallenc.domain.encrypt.Encryptor
+import com.github.nullptroma.wallenc.domain.enums.VaultType
 import com.github.nullptroma.wallenc.domain.interfaces.IStorage
 import com.github.nullptroma.wallenc.domain.interfaces.IUnlockManager
 import com.github.nullptroma.wallenc.domain.interfaces.IVaultsManager
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -30,6 +33,19 @@ class UnlockManager(
     override val openedStorages: StateFlow<Map<UUID, IStorage>?>
         get() = _openedStorages
     private val mutex = Mutex()
+    override val type: VaultType
+        get() = VaultType.DECRYPTED
+    override val uuid: UUID
+        get() = TODO("Not yet implemented")
+    override val isAvailable: StateFlow<Boolean>
+        get() = MutableStateFlow(true)
+    override val totalSpace: StateFlow<Int?>
+        get() = MutableStateFlow(null)
+    override val availableSpace: StateFlow<Int?>
+        get() =  MutableStateFlow(null)
+
+    override val storages: StateFlow<List<IStorage>?>
+        get() = TODO()
 
     init {
         CoroutineScope(ioDispatcher).launch {
@@ -103,20 +119,54 @@ class UnlockManager(
         return@withContext encStorage
     }
 
-    override suspend fun close(storage: IStorage) = withContext(ioDispatcher) {
+    /**
+     * Закрыть шифрование хранилища, закрывает рекурсивно, удаляя все ключи
+     * @param storage исходное хранилище, а не расшифрованное отображение
+     */
+    override suspend fun close(storage: IStorage) {
+        close(storage.uuid)
+    }
+
+    /**
+     * Закрыть шифрование хранилища, закрывает рекурсивно, удаляя все ключи
+     * @param uuid uuid исходного хранилища
+     */
+    override suspend fun close(uuid: UUID): Unit = withContext(ioDispatcher) {
         mutex.lock()
         val opened = _openedStorages.first { it != null }!!
-        val enc = opened[storage.uuid] ?: return@withContext
+        val enc = opened[uuid] ?: return@withContext
+        close(enc)
         val model = StorageKeyMap(
-            sourceUuid = storage.uuid,
+            sourceUuid = uuid,
             destUuid = enc.uuid,
             key = EncryptKey("")
         )
         _openedStorages.value = opened.toMutableMap().apply {
-            remove(storage.uuid)
+            remove(uuid)
         }
         enc.dispose()
         keymapRepository.delete(model)
         mutex.unlock()
+    }
+
+    override suspend fun createStorage(): IStorage {
+        throw UnsupportedOperationException("Нельзя создать кошелёк на UnlockManager") // TODO
+    }
+
+    override suspend fun createStorage(enc: StorageEncryptionInfo): IStorage {
+        throw UnsupportedOperationException("Нельзя создать кошелёк на UnlockManager") // TODO
+    }
+
+    /**
+     * Закрыть отображение
+     * @param storage исходное или расшифрованное хранилище
+     */
+    override suspend fun remove(storage: IStorage) {
+        val opened = _openedStorages.first { it != null }!!
+        val source = opened.entries.firstOrNull {
+            it.key == storage.uuid || it.value.uuid == storage.uuid
+        }
+        if(source != null)
+            close(source.key)
     }
 }

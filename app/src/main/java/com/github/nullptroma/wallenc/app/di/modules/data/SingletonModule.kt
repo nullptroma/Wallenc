@@ -25,9 +25,17 @@ class SingletonModule {
     @Singleton
     fun provideVaultsManager(
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        keyRepo: StorageKeyMapRepository,
     ): IVaultsManager {
-        return VaultsManager(ioDispatcher, context)
+        return VaultsManager(ioDispatcher, context, keyRepo)
+    }
+
+    @Provides
+    fun provideUnlockManager(
+        vaultsManager: IVaultsManager
+    ): IUnlockManager {
+        return vaultsManager.unlockManager
     }
 
     @Provides
@@ -46,19 +54,5 @@ class SingletonModule {
         @IoDispatcher ioDispatcher: CoroutineDispatcher
     ): StorageMetaInfoRepository {
         return StorageMetaInfoRepository(dao, ioDispatcher)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUnlockManager(
-        @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        keyRepo: StorageKeyMapRepository,
-        vaultsManager: IVaultsManager
-    ): IUnlockManager {
-        return UnlockManager(
-            keymapRepository = keyRepo,
-            ioDispatcher = ioDispatcher,
-            vaultsManager = vaultsManager
-        )
     }
 }

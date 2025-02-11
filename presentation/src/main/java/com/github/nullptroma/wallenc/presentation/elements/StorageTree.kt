@@ -38,7 +38,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -65,12 +67,16 @@ fun StorageTree(
     val numOfFiles by cur.numberOfFiles.collectAsStateWithLifecycle()
     val size by cur.size.collectAsStateWithLifecycle()
     val metaInfo by cur.metaInfo.collectAsStateWithLifecycle()
+    //val isAvailable by cur.isAvailable.collectAsStateWithLifecycle()
+    val isAvailable = metaInfo.name?.startsWith("1") != true
     val borderColor =
         if (cur.isVirtualStorage) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
     Column(modifier) {
-        Box(modifier = Modifier
-            .height(IntrinsicSize.Min)
-            .zIndex(100f)) {
+        Box(
+            modifier = Modifier
+                .height(IntrinsicSize.Min)
+                .zIndex(100f)
+        ) {
             val interactionSource = remember { MutableInteractionSource() }
             Box(
                 modifier = Modifier
@@ -115,7 +121,7 @@ fun StorageTree(
                         modifier = Modifier,
                         horizontalAlignment = Alignment.End
                     ) {
-                        Box(modifier = Modifier.padding(0.dp, 8.dp, 8.dp, 0.dp)) {
+                        Box(modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp)) {
                             var expanded by remember { mutableStateOf(false) }
                             var showRenameDialog by remember { mutableStateOf(false) }
                             var showRemoveConfirmationDiaglog by remember { mutableStateOf(false) }
@@ -194,6 +200,17 @@ fun StorageTree(
                         )
                     }
                 }
+            }
+            if(!isAvailable) {
+                Box(
+                    modifier = Modifier
+                        .clip(
+                            CardDefaults.shape
+                        )
+                        .fillMaxSize()
+                        .alpha(0.5f)
+                        .background(Color.Black)
+                )
             }
         }
         for (i in tree.children ?: listOf()) {

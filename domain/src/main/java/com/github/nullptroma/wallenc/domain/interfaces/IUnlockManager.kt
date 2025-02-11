@@ -4,7 +4,7 @@ import com.github.nullptroma.wallenc.domain.datatypes.EncryptKey
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-interface IUnlockManager {
+interface IUnlockManager: IVault {
     /**
      * Хранилища, для которых есть ключ шифрования
      */
@@ -12,4 +12,5 @@ interface IUnlockManager {
 
     suspend fun open(storage: IStorage, key: EncryptKey): IStorage
     suspend fun close(storage: IStorage)
+    suspend fun close(uuid: UUID): Unit
 }
