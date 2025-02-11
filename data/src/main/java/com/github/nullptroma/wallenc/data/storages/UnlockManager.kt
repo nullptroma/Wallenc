@@ -15,10 +15,12 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -45,7 +47,11 @@ class UnlockManager(
         get() =  MutableStateFlow(null)
 
     override val storages: StateFlow<List<IStorage>?>
-        get() = TODO()
+        get() = openedStorages.map { it?.values?.toList() }.stateIn(
+            scope = CoroutineScope(ioDispatcher),
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = null
+        )
 
     init {
         CoroutineScope(ioDispatcher).launch {

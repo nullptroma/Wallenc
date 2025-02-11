@@ -67,8 +67,7 @@ fun StorageTree(
     val numOfFiles by cur.numberOfFiles.collectAsStateWithLifecycle()
     val size by cur.size.collectAsStateWithLifecycle()
     val metaInfo by cur.metaInfo.collectAsStateWithLifecycle()
-    //val isAvailable by cur.isAvailable.collectAsStateWithLifecycle()
-    val isAvailable = metaInfo.name?.startsWith("1") != true
+    val isAvailable by cur.isAvailable.collectAsStateWithLifecycle()
     val borderColor =
         if (cur.isVirtualStorage) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
     Column(modifier) {
