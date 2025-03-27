@@ -3,6 +3,7 @@ package com.github.nullptroma.wallenc.presentation.screens.main
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,15 +64,14 @@ fun MainScreen(
 
     Scaffold(modifier = modifier, contentWindowInsets = WindowInsets(0.dp), bottomBar = {
         Column {
-            NavigationBar(modifier = Modifier.height(48.dp)) {
+            NavigationBar(windowInsets = WindowInsets(0), modifier = Modifier.height(48.dp)) {
                 val navBackStackEntry by navState.navHostController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
                 topLevelNavBarItems.forEach {
                     val routeClassName = it.key
                     val navBarItemData = it.value
                     NavigationBarItem(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
+                        .weight(1f),
                         icon = { Text(stringResource(navBarItemData.nameStringResourceId)) },
                         selected = currentRoute?.startsWith(routeClassName) == true,
                         onClick = {
@@ -80,7 +81,9 @@ fun MainScreen(
                                 navState.changeTop(
                                     route
                                 )
-                        })
+                        },
+                        label = null
+                    )
                 }
             }
             HorizontalDivider()

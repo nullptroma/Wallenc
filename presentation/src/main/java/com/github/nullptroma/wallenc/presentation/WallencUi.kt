@@ -3,8 +3,11 @@ package com.github.nullptroma.wallenc.presentation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Settings
@@ -19,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -71,13 +75,15 @@ fun WallencNavRoot(viewModel: WallencViewModel = hiltViewModel()) {
 
 
     Scaffold(bottomBar = {
-        NavigationBar(modifier = Modifier.height(64.dp)) {
+        NavigationBar(modifier = Modifier.wrapContentHeight()) {
             val navBackStackEntry by navState.navHostController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
             topLevelNavBarItems.forEach {
                 val routeClassName = it.key
                 val navBarItemData = it.value
-                NavigationBarItem(icon = {
+                NavigationBarItem(
+                    modifier = Modifier.wrapContentHeight(),
+                    icon = {
                     if (navBarItemData.icon != null) Icon(
                         navBarItemData.icon,
                         contentDescription = stringResource(navBarItemData.nameStringResourceId)
@@ -92,7 +98,8 @@ fun WallencNavRoot(viewModel: WallencViewModel = hiltViewModel()) {
                         if (currentRoute?.startsWith(routeClassName) != true) navState.changeTop(
                             route
                         )
-                    })
+                    }
+                )
             }
         }
     }) { innerPaddings ->
